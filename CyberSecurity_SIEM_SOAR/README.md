@@ -108,12 +108,11 @@ Cette solution est optimisée pour :
 - **[🔬 Analyse Comparative](docs/benchmarking/comparative_analysis.md)** - Justification technique de la stack
 - **[🏗️ Architecture Détaillée](docs/architecture/detailed_architecture.md)** - Intégrations et composants
 - **[🌐 Topologie Réseau](docs/topologies/hospital_network_topology.md)** - Diagrammes et flux
-- **[🚀 Guide de Déploiement](docs/deployment/deployment_guide.md)** - Installation pas-à-pas
 
 
 ### **📊 Diagrammes d'Architecture**
-- **[🔍 Architecture Complète](tests/attack-scenarios/flowchart%20TB.mmd)** - Vue détaillée avec tous les composants
-- **[⚡ Architecture Minimale](tests/attack-scenarios/minimal_architecture.mmd)** - Vue simplifiée pour présentations
+- **[🔍 Architecture Complète](flowData_Complex.png)** - Vue détaillée avec tous les composants
+- **[⚡ Architecture Minimale](flowData_simple.png)** - Vue simplifiée pour présentations
 
 ## 🎓 **Contexte Académique**
 
