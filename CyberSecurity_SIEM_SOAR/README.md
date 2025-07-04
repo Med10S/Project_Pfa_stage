@@ -100,28 +100,7 @@ Cette solution est optimisée pour :
 - **-60%** faux positifs
 - **+150%** détection de menaces avancées
 
-## Structure du Projet
 
-```
-CyberSecurity_SIEM_SOAR/
-├── docs/
-│   ├── architecture/
-│   ├── benchmarking/
-│   ├── deployment/
-│   └── topologies/
-├── config/
-│   ├── wazuh/
-│   ├── elastic/
-│   ├── thehive/
-│   └── cortex/
-├── scripts/
-│   ├── installation/
-│   ├── monitoring/
-│   └── automation/
-└── tests/
-    ├── attack-scenarios/
-    └── validation/
-```
 
 ## Documentation Technique
 
@@ -130,46 +109,11 @@ CyberSecurity_SIEM_SOAR/
 - **[🏗️ Architecture Détaillée](docs/architecture/detailed_architecture.md)** - Intégrations et composants
 - **[🌐 Topologie Réseau](docs/topologies/hospital_network_topology.md)** - Diagrammes et flux
 - **[🚀 Guide de Déploiement](docs/deployment/deployment_guide.md)** - Installation pas-à-pas
-- **[🎯 Scénarios d'Attaques](tests/attack-scenarios/test_scenarios.md)** - Tests et validations
+
 
 ### **📊 Diagrammes d'Architecture**
 - **[🔍 Architecture Complète](tests/attack-scenarios/flowchart%20TB.mmd)** - Vue détaillée avec tous les composants
 - **[⚡ Architecture Minimale](tests/attack-scenarios/minimal_architecture.mmd)** - Vue simplifiée pour présentations
-
-## 🚀 **Démarrage Rapide**
-
-### **Phase 1 : Compréhension** 📚
-1. **Lire** l'analyse comparative pour comprendre les choix
-2. **Examiner** les diagrammes d'architecture
-3. **Étudier** les flux de données et intégrations
-
-### **Phase 2 : Déploiement** 🛠️
-1. **Préparer** l'infrastructure selon les prérequis
-2. **Installer** la stack SIEM/SOAR avec les scripts
-3. **Configurer** les intégrations et connecteurs
-
-### **Phase 3 : Validation** ✅
-1. **Tester** les scénarios d'attaques prédéfinis
-2. **Valider** les playbooks de réponse automatique
-3. **Former** l'équipe SOC aux nouveaux outils
-
-## 💼 **Livrables du Projet**
-
-### **📋 Documentation**
-- ✅ Analyse comparative détaillée (253 lignes)
-- ✅ Architecture technique complète (616 lignes)
-- ✅ Guide de déploiement opérationnel (1132 lignes)
-- ✅ Scénarios de tests de sécurité
-
-### **🔧 Scripts & Automatisation**
-- ✅ Script d'installation automatisée complète
-- ✅ Configurations optimisées pour environnement hospitalier
-- ✅ Playbooks SOAR prêts à l'emploi
-
-### **📊 Visualisations**
-- ✅ Diagrammes Mermaid interactifs
-- ✅ Topologies réseau détaillées
-- ✅ Flux de données et monitoring
 
 ## 🎓 **Contexte Académique**
 
@@ -178,13 +122,4 @@ CyberSecurity_SIEM_SOAR/
 **Objectif :** Concevoir une solution cybersécurité enterprise-grade pour environnement critique  
 **Date :** Juillet 2025  
 
-### **🎯 Compétences Démontrées**
-- **Architecture** de solutions de sécurité complexes
-- **Intégration** de multiples technologies open source
-- **Automatisation** et orchestration de la sécurité
-- **Documentation** technique professionnelle
-- **Analyse** comparative et justification des choix
 
----
-
-*Ce projet démontre la capacité à concevoir, documenter et déployer une solution de cybersécurité moderne adaptée aux défis spécifiques du secteur hospitalier.* 🏥🔒
