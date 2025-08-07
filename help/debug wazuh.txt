@@ -1,0 +1,16 @@
+debug wazuh manager : 
+
+# Access the Wazuh manager container
+docker exec -it wazuh-manager /bin/bash
+
+# Inside the container, check Wazuh services
+/var/ossec/bin/wazuh-control status
+
+# Restart the Wazuh API service
+/var/ossec/bin/wazuh-control restart wazuh-api
+
+# Check API configuration
+cat /var/ossec/api/configuration/api.yaml
+
+
+/var/ossec/ruleset/rules/0950-sysmon_id_20.xml
