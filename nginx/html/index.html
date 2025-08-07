@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>SOAR Dashboard - sbihi.soar.ma</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --secondary: #0f172a;
+      --success: #16a34a;
+      --warning: #ca8a04;
+      --danger: #dc2626;
+      --light: #f8fafc;
+      --dark: #0f172a;
+      --card-bg: #fff;
+      --hover-bg: #f1f5f9;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #0f172a;
+      color: #f8fafc;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    header {
+      text-align: center;
+      padding: 40px 20px;
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      border-bottom: 1px solid #334155;
+    }
+    
+    h1 {
+      margin: 0;
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #f8fafc;
+    }
+    
+    .subtitle {
+      margin-top: 10px;
+      color: #94a3b8;
+      font-size: 1.1rem;
+    }
+    
+    .dashboard-stats {
+      display: flex;
+      justify-content: space-around;
+      margin: 20px 0;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    
+    .stat-card {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 20px;
+      min-width: 150px;
+      text-align: center;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 5px;
+    }
+    
+    .stat-label {
+      color: #94a3b8;
+      font-size: 0.9rem;
+    }
+    
+    .section-title {
+      font-size: 1.5rem;
+      margin: 40px 0 20px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #334155;
+      color: #e2e8f0;
+    }
+    
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+    
+    .service-card {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 25px;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      border-left: 4px solid transparent;
+    }
+    
+    .service-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    }
+    
+    .security .service-card:hover {
+      border-left-color: var(--danger);
+    }
+    
+    .infrastructure .service-card:hover {
+      border-left-color: var(--primary);
+    }
+    
+    .automation .service-card:hover {
+      border-left-color: var(--success);
+    }
+    
+    .service-icon {
+      font-size: 2.5rem;
+      margin-bottom: 15px;
+    }
+    
+    .service-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #f8fafc;
+    }
+    
+    .service-desc {
+      font-size: 0.95rem;
+      color: #94a3b8;
+      line-height: 1.5;
+      margin-bottom: 15px;
+    }
+    
+    .service-status {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      margin-top: auto;
+      background-color: #27272a;
+    }
+    
+    .status-dot {
+      height: 8px;
+      width: 8px;
+      border-radius: 50%;
+      margin-right: 6px;
+    }
+    
+    .status-active .status-dot {
+      background-color: var(--success);
+    }
+    
+    footer {
+      text-align: center;
+      margin-top: 40px;
+      padding: 20px;
+      color: #64748b;
+      font-size: 0.9rem;
+    }
+    
+    @media (max-width: 768px) {
+      .services-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .dashboard-stats {
+        flex-direction: column;
+      }
+      
+      .stat-card {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>SOAR Platform Dashboard</h1>
+    <p class="subtitle">Security Orchestration, Automation & Response</p>
+  </header>
+  
+  <div class="container">
+    <div class="dashboard-stats">
+      <div class="stat-card">
+        <div class="stat-value">6</div>
+        <div class="stat-label">Active Services</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">3</div>
+        <div class="stat-label">Security Tools</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">100%</div>
+        <div class="stat-label">System Uptime</div>
+      </div>
+    </div>
+    
+    <h2 class="section-title">Security Operations</h2>
+    <div class="services-grid security">
+      <div class="service-card" onclick="goSubdomain('wazuh')">
+        <div class="service-icon">🛡️</div>
+        <div class="service-title">Wazuh Dashboard</div>
+        <div class="service-desc">Security monitoring, threat detection and incident response platform.</div>
+        <div class="service-status status-active"><span class="status-dot"></span> Active</div>
+      </div>
+      <div class="service-card" onclick="goSubdomain('thehive')">
+        <div class="service-icon">🐝</div>
+        <div class="service-title">TheHive</div>
+        <div class="service-desc">Security incident response platform designed for SOC & CSIRT teams.</div>
+        <div class="service-status status-active"><span class="status-dot"></span> Active</div>
+      </div>
+   <div class="service-card" onclick="goSubdomain('cortex')">
+        <div class="service-icon">🧠</div>
+        <div class="service-title">Cortex</div>
+        <div class="service-desc">Orchestrate and centralize incident response</div>
+        <div class="service-status status-active"><span class="status-dot"></span> Active</div>
+      </div>
+       <div class="service-card" onclick="goSubdomain('misp')">
+        <div class="service-icon">💬</div>
+        <div class="service-title">MISP</div>
+        <div class="service-desc">Malware Information Sharing Platform</div>
+        <div class="service-status status-active"><span class="status-dot"></span> Active</div>
+      </div>
+    </div>
+    
+    <h2 class="section-title">Infrastructure & Network</h2>
+    <div class="services-grid infrastructure">
+      <div class="service-card" onclick="goSubdomain('dns')">
+        <div class="service-icon">🌐</div>
+        <div class="service-title">Technitium DNS</div>
+        <div class="service-desc">DNS server for network infrastructure management and domain resolution.</div>
+        <div class="service-status status-active"><span class="status-dot"></span> Active</div>
+      </div>
+      <div class="service-card" onclick="goSubdomain('portainer')">
+        <div class="service-icon">🐳</div>
+        <div class="service-title">Portainer</div>
+        <div class="service-desc">Container management platform for Docker environments.</div>
+        <div class="service-status status-active"><span class="status-dot"></span> Active</div>
+      </div>
+    </div>
+    
+    <h2 class="section-title">Communication & Automation</h2>
+    <div class="services-grid automation">
+      <div class="service-card" onclick="goSubdomain('mail')">
+        <div class="service-icon">📧</div>
+        <div class="service-title">Email Service</div>
+        <div class="service-desc">Secure email platform for team communications and alerts.</div>
+        <div class="service-status status-active"><span class="status-dot"></span> Active</div>
+      </div>
+      <div class="service-card" onclick="goSubdomain('n8n','http://')">
+        <div class="service-icon">⚙️</div>
+        <div class="service-title">N8N Workflow</div>
+        <div class="service-desc">Automation workflow engine for security processes and integrations.</div>
+        <div class="service-status status-active"><span class="status-dot"></span> Active</div>
+      </div>
+    </div>
+  </div>
+  
+  <footer>
+    <p>© 2025 SOAR Platform | sbihi.soar.ma</p>
+    <p>Dernière mise à jour: 19/07/2025 20:31</p>
+  </footer>
+  
+  <script>
+    // Fonction pour naviguer vers un sous-domaine
+    function goSubdomain(subdomain,indicatif="https://") {
+      // Obtenir le domaine de base en retirant le premier sous-domaine s'il existe
+      const domainParts = window.location.hostname.split('.');
+      let baseDomain;
+      
+      if (domainParts.length >= 2) {
+        // Si nous sommes sur sbihi.soar.ma ou un sous-domaine
+        if (domainParts.length > 2) {
+          // Nous sommes déjà sur un sous-domaine, prenons juste les deux derniers éléments
+          baseDomain = domainParts.slice(-3).join('.');
+        } else {
+          // Nous sommes sur le domaine principal
+          baseDomain = domainParts.join('.');
+        }
+      } else {
+        // Fallback au cas où
+        baseDomain = window.location.hostname;
+      }
+	    window.location.href = `${indicatif}${subdomain}.${baseDomain}/`;
+ 
+      // Cas spécial pour N8N qui utilise un port
+      
+    }
+    
+    // Fonction legacy maintenue pour compatibilité
+    function go(path) {
+      // Déterminer si nous utilisons les sous-domaines ou les chemins
+      const usePaths = false; // Mettre à true pour revenir au système de chemin
+      
+      if (usePaths) {
+        window.location.href = path;
+      } else {
+        // Extraire le nom du service à partir du chemin
+        const service = path.replace(/\//g, '');
+        goSubdomain(service);
+      }
+    }
+    
+    // Fonction legacy maintenue pour compatibilité
+    function goPort(port) {
+      window.location.href = 'http://' + window.location.hostname + port;
+    }
+  </script>
+</body>
+</html>

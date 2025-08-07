@@ -1,0 +1,84 @@
+<!-- Local rules -->
+<!-- Modified to add base groups and fix conflicts -->
+<!-- Copyright (C) 2015, Wazuh Inc. -->
+
+<!-- 
+  Base group definitions - MUST come first 
+  These establish the fundamental groups that other rules reference
+-->
+
+<!-- Base Windows/Sysmon Group Definition -->
+<group name="windows,sysmon,">
+    <!-- Base rule to establish the sysmon group -->
+    <rule id="99900" level="0">
+        <decoded_as>windows</decoded_as>
+        <field name="win.system.provider.name">Microsoft-Windows-Sysmon</field>
+        <description>Base Sysmon rule - establishes sysmon group</description>
+        <group>sysmon,</group>
+    </rule>
+    
+    <!-- Alternative base rule for Sysmon channel -->
+    <rule id="99901" level="0">
+        <decoded_as>windows</decoded_as>
+        <field name="win.system.channel">Microsoft-Windows-Sysmon/Operational</field>
+        <description>Base Sysmon operational channel rule</description>
+        <group>sysmon,</group>
+    </rule>
+    
+    <!-- Generic Windows event with Sysmon provider -->
+    <rule id="99902" level="0">
+        <decoded_as>windows</decoded_as>
+        <field name="win.system.provider.name">\.+</field>
+        <description>Base Windows provider rule</description>
+        <group>sysmon,</group>
+    </rule>
+</group>
+
+<!-- Base Suricata/IDS Group Definition -->
+<group name="suricata,ids,">
+    <!-- Base rule to establish the suricata group -->
+    <rule id="99910" level="0">
+        <decoded_as>json</decoded_as>
+        <field name="event_type">alert</field>
+        <description>Base Suricata rule - establishes suricata group</description>
+        <group>suricata,</group>
+    </rule>
+    
+    <!-- Alternative base rule for Suricata alerts -->
+    <rule id="99911" level="0">
+        <field name="alert">\.+</field>
+        <description>Base Suricata alert rule</description>
+        <group>suricata,</group>
+    </rule>
+    
+    <!-- Suricata signature field rule -->
+    <rule id="99912" level="0">
+        <field name="alert.signature">\.+</field>
+        <description>Base Suricata signature rule</description>
+        <group>suricata,</group>
+    </rule>
+</group>
+
+<!-- Example local rules - modified to avoid conflicts -->
+<group name="local,syslog,sshd,">
+
+  <!-- Base SSH rule to establish group -->
+  <rule id="99920" level="0">
+    <decoded_as>sshd</decoded_as>
+    <description>Base SSH rule</description>
+    <group>sshd,</group>
+  </rule>
+
+  <!--
+  Example: SSH authentication failed
+  Dec 10 01:02:02 host sshd[1234]: Failed none for root from 1.1.1.1 port 1066 ssh2
+  -->
+  <rule id="99921" level="5">
+    <if_group>sshd</if_group>
+    <srcip>1.1.1.1</srcip>
+    <match>authentication failed|Failed password</match>
+    <description>sshd: authentication failed from IP 1.1.1.1.</description>
+    <group>authentication_failed,pci_dss_10.2.4,pci_dss_10.2.5,</group>
+  </rule>
+
+</group>
