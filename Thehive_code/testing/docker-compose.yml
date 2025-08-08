@@ -52,7 +52,7 @@ services:
       - bootstrap.memory_lock=true
       - xpack.security.enabled=true
       - ELASTIC_PASSWORD=${elasticsearch_password} # Password for "elastic" default user
-      - ES_JAVA_OPTS=-Xms1G -Xmx1G
+      - ES_JAVA_OPTS=-Xms1G -Xmx1G -Xlog:disable
     volumes:
       - ./elasticsearch/data:/usr/share/elasticsearch/data
       - ./elasticsearch/logs:/usr/share/elasticsearch/logs
