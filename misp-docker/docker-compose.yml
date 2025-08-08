@@ -59,22 +59,22 @@ services:
     build:
       context: core/.
       args:
-          - CORE_TAG=${CORE_TAG:?Missing .env file, see README.md for instructions}
-          - CORE_COMMIT=${CORE_COMMIT}
-          - CORE_FLAVOR=${CORE_FLAVOR:-full}
-          - PHP_VER=${PHP_VER:?Missing .env file, see README.md for instructions}
-          - PYPI_REDIS_VERSION=${PYPI_REDIS_VERSION}
-          - PYPI_LIEF_VERSION=${PYPI_LIEF_VERSION}
-          - PYPI_PYDEEP2_VERSION=${PYPI_PYDEEP2_VERSION}
-          - PYPI_PYTHON_MAGIC_VERSION=${PYPI_PYTHON_MAGIC_VERSION}
-          - PYPI_MISP_LIB_STIX2_VERSION=${PYPI_MISP_LIB_STIX2_VERSION}
-          - PYPI_MAEC_VERSION=${PYPI_MAEC_VERSION}
-          - PYPI_MIXBOX_VERSION=${PYPI_MIXBOX_VERSION}
-          - PYPI_CYBOX_VERSION=${PYPI_CYBOX_VERSION}
-          - PYPI_PYMISP_VERSION=${PYPI_PYMISP_VERSION}
-          - PYPI_MISP_STIX_VERSION=${PYPI_MISP_STIX_VERSION}
-          - PYPI_SETUPTOOLS_VERSION=${PYPI_SETUPTOOLS_VERSION}
-          - PYPI_SUPERVISOR_VERSION=${PYPI_SUPERVISOR_VERSION}
+        - CORE_TAG=${CORE_TAG:?Missing .env file, see README.md for instructions}
+        - CORE_COMMIT=${CORE_COMMIT}
+        - CORE_FLAVOR=${CORE_FLAVOR:-full}
+        - PHP_VER=${PHP_VER:?Missing .env file, see README.md for instructions}
+        - PYPI_REDIS_VERSION=${PYPI_REDIS_VERSION}
+        - PYPI_LIEF_VERSION=${PYPI_LIEF_VERSION}
+        - PYPI_PYDEEP2_VERSION=${PYPI_PYDEEP2_VERSION}
+        - PYPI_PYTHON_MAGIC_VERSION=${PYPI_PYTHON_MAGIC_VERSION}
+        - PYPI_MISP_LIB_STIX2_VERSION=${PYPI_MISP_LIB_STIX2_VERSION}
+        - PYPI_MAEC_VERSION=${PYPI_MAEC_VERSION}
+        - PYPI_MIXBOX_VERSION=${PYPI_MIXBOX_VERSION}
+        - PYPI_CYBOX_VERSION=${PYPI_CYBOX_VERSION}
+        - PYPI_PYMISP_VERSION=${PYPI_PYMISP_VERSION}
+        - PYPI_MISP_STIX_VERSION=${PYPI_MISP_STIX_VERSION}
+        - PYPI_SETUPTOOLS_VERSION=${PYPI_SETUPTOOLS_VERSION}
+        - PYPI_SUPERVISOR_VERSION=${PYPI_SUPERVISOR_VERSION}
     depends_on:
       redis:
         condition: service_healthy
@@ -83,7 +83,7 @@ services:
       misp-modules:
         condition: service_healthy
     networks:
-       # Réseau bridge par défaut
+      # Réseau bridge par défaut
       - local-misp
       - single-node_default
     healthcheck:
@@ -93,19 +93,16 @@ services:
       retries: 3
       start_period: 30s
       start_interval: 30s
-    ports:
-      - "8880:80"
-      - "9443:443"
     volumes:
       - "./configs/:/var/www/MISP/app/Config/"
       - "./logs/:/var/www/MISP/app/tmp/logs/"
       - "./files/:/var/www/MISP/app/files/"
       - "./ssl/:/etc/nginx/certs/"
       - "./gnupg/:/var/www/MISP/.gnupg/"
-      # customize by replacing ${CUSTOM_PATH} with a path containing 'files/customize_misp.sh'
-      # - "${CUSTOM_PATH}/:/custom/"
-      # mount custom ca root certificates
-      # - "./rootca.pem:/usr/local/share/ca-certificates/rootca.crt"
+    # customize by replacing ${CUSTOM_PATH} with a path containing 'files/customize_misp.sh'
+    # - "${CUSTOM_PATH}/:/custom/"
+    # mount custom ca root certificates
+    # - "./rootca.pem:/usr/local/share/ca-certificates/rootca.crt"
     environment:
       - "BASE_URL=${BASE_URL}"
       - "CRON_USER_ID=${CRON_USER_ID}"
@@ -289,4 +286,4 @@ networks:
   single-node_default:
     external: true
 volumes:
-    mysql_data:
+  mysql_data:
