@@ -2,6 +2,12 @@
 /Thehive_code/testing/cassandra/data/*
 /Thehive_code/testing/cassandra/logs/*
 
+mailu/docker-compose.yml.bak
+misp-docker/docker-compose.yml.bak
+n8n/docker-compose.yml.bak
+nginx/docker-compose.yml.bak
+wazuh-docker/single-node/docker-compose.yml.bak
+
 # Ignore folders used as docker bind by Cortex container
 /Thehive_code/testing/cortex/logs/*
 /Thehive_code/testing/cortex/neurons/*
