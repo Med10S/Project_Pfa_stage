@@ -88,6 +88,8 @@ services:
     restart: unless-stopped
     command: '--no-config --no-config-secret'
     user: ${UID}:${GID}
+    ports:
+      - "9999:9000"
     dns:
       - 192.168.15.3
     environment:
