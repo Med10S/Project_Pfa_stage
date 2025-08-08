@@ -1,0 +1,102 @@
+version: '3.8'
+
+services:
+  # ModSecurity avec Apache
+  modsecurity-apache:
+    image: owasp/modsecurity:3.0.12-apache
+    container_name: modsecurity-apache
+    ports:
+      - "880:80"
+      - "345:443"
+    volumes:
+      - ./modsecurity-config:/etc/modsecurity.d
+      - ./apache-config:/etc/apache2/sites-available
+      - ./logs:/var/log/apache2
+      - ./ssl:/etc/ssl/certs
+      - ./wazuh-integration:/etc/wazuh-integration
+    environment:
+      - MODSEC_RULE_ENGINE=On
+      - MODSEC_REQ_BODY_ACCESS=On
+      - MODSEC_REQ_BODY_LIMIT=13107200
+      - MODSEC_REQ_BODY_NOFILES_LIMIT=131072
+      - MODSEC_RESP_BODY_ACCESS=On
+      - MODSEC_RESP_BODY_LIMIT=524288
+      - BACKEND_HOST=webapp
+      - BACKEND_PORT=8080
+    depends_on:
+      - webapp
+    networks:
+      - soar-network
+    restart: unless-stopped
+
+  # Application web de test (DVWA)
+  webapp:
+    image: vulnerables/web-dvwa
+    container_name: dvwa-app
+    ports:
+      - "8080:80"
+    environment:
+      - MYSQL_HOSTNAME=mysql-db
+      - MYSQL_DATABASE=dvwa
+      - MYSQL_USERNAME=dvwa
+      - MYSQL_PASSWORD=p@ssw0rd
+    depends_on:
+      - mysql-db
+    networks:
+      - soar-network
+    restart: unless-stopped
+
+  # Base de données pour DVWA
+  mysql-db:
+    image: mysql:8.0
+    container_name: mysql-dvwa
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpassword
+      - MYSQL_DATABASE=dvwa
+      - MYSQL_USER=dvwa
+      - MYSQL_PASSWORD=p@ssw0rd
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - soar-network
+    restart: unless-stopped
+
+  # Agent Wazuh pour ModSecurity
+  wazuh-agent:
+    image: wazuh/wazuh-agent:4.7.2
+    container_name: wazuh-agent-modsec
+    environment:
+      - WAZUH_MANAGER=your-wazuh-manager-ip  # Remplacez par l'IP de votre serveur Wazuh
+      - WAZUH_AGENT_GROUP=modsecurity
+      - WAZUH_AGENT_NAME=modsecurity-waf
+    volumes:
+      - ./wazuh-config/ossec.conf:/var/ossec/etc/ossec.conf
+      - ./logs:/var/log/apache2:ro
+      - wazuh-agent-data:/var/ossec/var
+    networks:
+      - soar-network
+    restart: unless-stopped
+    depends_on:
+      - modsecurity-apache
+
+  # Service de notification webhook pour n8n
+  webhook-forwarder:
+    image: alpine/curl:latest
+    container_name: webhook-forwarder
+    volumes:
+      - ./scripts:/scripts
+      - ./logs:/var/log/apache2:ro
+    command: /scripts/monitor-xss.sh
+    networks:
+      - soar-network
+    restart: unless-stopped
+    depends_on:
+      - modsecurity-apache
+
+volumes:
+  mysql-data:
+  wazuh-agent-data:
+
+networks:
+  soar-network:
+    driver: bridge
