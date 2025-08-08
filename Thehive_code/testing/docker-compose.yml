@@ -106,6 +106,7 @@ services:
     memswap_limit: 2G
     networks:
       - thehive-cortex-network
+      - single-node_default
     ports:
       - '0.0.0.0:9000:9000'
     healthcheck:
@@ -156,6 +157,7 @@ services:
           memory: 2G
     memswap_limit: 2G
     networks:
+      - single-node_default
       - thehive-cortex-network
     ports:
       - '0.0.0.0:9001:9001'
@@ -176,37 +178,10 @@ services:
       com.strangebee.version: "${cortex_image_version}"
       com.strangebee.dependency: "elasticsearch"
 
-  nginx:
-    image: "nginx:${nginx_image_version}"
-    container_name: nginx
-    hostname: nginx
-    restart: unless-stopped
-    environment:
-      SERVER_NAME: "${nginx_server_name}"
-      NGINX_SSL_TRUSTED_CERTIFICATE: "${nginx_ssl_trusted_certificate}"
-    volumes:
-      - ./nginx/templates:/etc/nginx/templates  # Custom Nginx configuration
-      - ./nginx/certs:/etc/nginx/certs  # Directory for custom certificates
-    ports:
-      - '443:443'
-    networks:
-      - thehive-cortex-network
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-          cpus: '1.000'
-    depends_on:
-      - thehive
-      - cortex
-    labels:
-      com.strangebee.stack: "thehive-cortex-stack"
-      com.strangebee.service: "nginx"
-      com.strangebee.role: "reverse proxy"
-      com.strangebee.environment: "testing"
-      com.strangebee.version: "${nginx_image_version}"
-      com.strangebee.dependency: "thehive, cortex"
+
 
 
 networks:
+  single-node_default:
+    external: true
   thehive-cortex-network:
