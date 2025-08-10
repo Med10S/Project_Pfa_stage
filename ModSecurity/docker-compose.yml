@@ -63,7 +63,7 @@ services:
       - soar-network
     restart: ${RESTART_POLICY}
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/"]
+      test: ["CMD", "curl", "-f", "http://localhost:8180/"]
       interval: 30s
       timeout: 10s
       retries: 5
