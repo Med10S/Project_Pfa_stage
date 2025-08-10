@@ -3,7 +3,7 @@ version: '3.7'
 
 services:
   wazuh.manager:
-    image: wazuh/wazuh-manager:4.12.0
+    image: wazuh/wazuh-manager:4.13.0-rc3
     hostname: wazuh.manager
     restart: always
     dns:
@@ -64,7 +64,7 @@ services:
       - ./config/wazuh_indexer_ssl_certs/wazuh.manager-key.pem:/etc/ssl/filebeat.key
 
   wazuh.indexer:
-    image: wazuh/wazuh-indexer:4.12.0
+    image: wazuh/wazuh-indexer:4.13.0-rc3
     hostname: wazuh.indexer
     restart: always
     dns:
@@ -96,7 +96,7 @@ services:
       - ./config/wazuh_indexer/internal_users.yml:/usr/share/wazuh-indexer/opensearch-security/internal_users.yml
 
   wazuh.dashboard:
-    image: wazuh/wazuh-dashboard:4.12.0
+    image: wazuh/wazuh-dashboard:4.13.0-rc3
     hostname: wazuh.dashboard
     container_name: wazuh.dashboard
     restart: always
