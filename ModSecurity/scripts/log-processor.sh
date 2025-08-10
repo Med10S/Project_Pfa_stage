@@ -154,6 +154,7 @@ monitor_logs() {
         echo -e "${RED}❌ Invalid JSON log entry skipped${NC}"
       fi
     done
+  echo -e "${BLUE}🔍 Monitoring stopped. Exiting...${NC}"
 }
 
 monitor_logs
