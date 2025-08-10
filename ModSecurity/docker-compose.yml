@@ -207,7 +207,6 @@ networks:
     external: true
   soar-network:
     driver: bridge
-    name: ${PROJECT_NAME}_network
     ipam:
       config:
         - subnet: ${NETWORK_SUBNET}
