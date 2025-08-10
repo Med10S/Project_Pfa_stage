@@ -147,7 +147,6 @@ services:
       - ANALYST_NAME=${ANALYST_NAME}
       - ENVIRONMENT=${ENVIRONMENT}
     volumes:
-      - ./scripts:/scripts:ro
       - ./logs:/var/log/apache2:rw
       - ./monitoring:/monitoring:rw
       - log-processor-data:/data
