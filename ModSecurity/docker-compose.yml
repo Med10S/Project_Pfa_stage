@@ -116,7 +116,7 @@ services:
     networks:
       - single-node_default
       - soar-network
-    restart: ${RESTART_POLICY:-unless-stopped}
+    restart: ${RESTART_POLICY}
     dns:
       - 192.168.15.3
     depends_on:
