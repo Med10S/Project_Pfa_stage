@@ -96,7 +96,7 @@ services:
   # Agent Wazuh pour ModSecurity
   wazuh-agent:
     image: ${WAZUH_AGENT_IMAGE}
-    container_name: ${WAZUH_AGENT_CONTAINER_NAME:-wazuh-agent-modsec}
+    container_name: ${WAZUH_AGENT_CONTAINER_NAME}
     environment:
       - WAZUH_MANAGER=${WAZUH_MANAGER_IP}
       - WAZUH_MANAGER_PORT=${WAZUH_MANAGER_PORT:-1514}
