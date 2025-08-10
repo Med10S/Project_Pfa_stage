@@ -1,6 +1,6 @@
-version: "3.4"
 
 
+version: "2.2"
 services:
   # ModSecurity avec Apache
   modsecurity-apache:
