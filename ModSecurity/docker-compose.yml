@@ -10,7 +10,7 @@ services:
       - "${HTTP_PORT}:80"
       - "${HTTPS_PORT}:443"
     volumes:
-      - ./modsecurity-config:/etc/modsecurity.d:ro
+      - ./modsecurity-config:/etc/modsecurity.d
       - ./apache-config:/etc/apache2/sites-available:ro
       - ./logs:/var/log/apache2
       - ./ssl:/etc/ssl/certs:ro
