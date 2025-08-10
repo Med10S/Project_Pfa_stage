@@ -95,7 +95,7 @@ services:
 
   # Agent Wazuh pour ModSecurity
   wazuh-agent:
-    image: ${WAZUH_AGENT_IMAGE:-wazuh/wazuh-agent:4.7.2}
+    image: ${WAZUH_AGENT_IMAGE}
     container_name: ${WAZUH_AGENT_CONTAINER_NAME:-wazuh-agent-modsec}
     environment:
       - WAZUH_MANAGER=${WAZUH_MANAGER_IP}
