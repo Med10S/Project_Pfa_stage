@@ -35,8 +35,7 @@ wazuh-docker/single-node/docker-compose.yml.bak
 # Ignore .DS_Store files
 /**/.DS_Store
 # Ignore server keys/certs
-/**/server.key
-/**/server.crt
+
 /**/ca.pem
 
 /Thehive_code/testing/cassandra/logs/debug.log
