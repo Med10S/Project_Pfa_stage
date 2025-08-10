@@ -145,29 +145,17 @@ EOF
 monitor_logs() {
   echo -e "${GREEN}🔄 Monitoring logs for XSS alerts...${NC}"
   
-  # Process existing XSS logs first
-  echo -e "${BLUE}📋 Processing existing XSS logs...${NC}"
-  grep "XSS Attack Detected and Blocked" "$LOG_FILE" | while read -r entry; do
-    if echo "$entry" | jq . >/dev/null 2>&1; then
-      echo -e "${RED}🚨 Processing existing XSS alert${NC}"
-      send_xss_alert "$entry"
-    else
-      echo -e "${RED}❌ Invalid JSON log entry skipped${NC}"
-    fi
-  done
-  
-  # Then monitor for new logs
-  echo -e "${BLUE}👀 Now monitoring for new XSS alerts...${NC}"
-  tail -n0 -F "$LOG_FILE" 2>/dev/null | \
-    grep --line-buffered "XSS Attack Detected and Blocked" | \
-    while read -r entry; do
-      if echo "$entry" | jq . >/dev/null 2>&1; then
+ # Monitor for new logs using a simpler approach compatible with BusyBox
+  tail -n0 -F "$LOG_FILE" 2>/dev/null | while IFS= read -r line; do
+    if echo "$line" | grep -q "XSS Attack Detected and Blocked"; then
+      if echo "$line" | jq . >/dev/null 2>&1; then
         echo -e "${RED}🚨 New XSS alert detected${NC}"
-        send_xss_alert "$entry"
+        send_xss_alert "$line"
       else
         echo -e "${RED}❌ Invalid JSON log entry skipped${NC}"
       fi
-    done
+    fi
+  done
   echo -e "${BLUE}🔍 Monitoring stopped. Exiting...${NC}"
 }
 
