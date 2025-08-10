@@ -29,7 +29,6 @@ services:
     dns:
       - 192.168.15.3
     networks:
-      - single-node_default
       - soar-network
     restart: ${RESTART_POLICY}
     healthcheck:
@@ -61,7 +60,6 @@ services:
     dns:
       - 192.168.15.3
     networks:
-      - single-node_default
       - soar-network
     restart: ${RESTART_POLICY}
     healthcheck:
@@ -115,7 +113,6 @@ services:
       - wazuh-agent-data:/var/ossec/var
       - ./scripts:/scripts:ro
     networks:
-      - single-node_default
       - soar-network
     restart: ${RESTART_POLICY}
     dns:
@@ -155,7 +152,6 @@ services:
       - ./monitoring:/monitoring:rw
       - log-processor-data:/data
     networks:
-      - single-node_default
       - soar-network
     restart: ${RESTART_POLICY}
     dns:
@@ -186,7 +182,6 @@ services:
     dns:
       - 192.168.15.3
     networks:
-      - single-node_default
       - soar-network
     restart: ${RESTART_POLICY}
     command: /bin/sh -c "apk add --no-cache curl docker-cli python3 py3-pip && pip3 install requests && /monitoring/healthcheck.sh"
@@ -203,8 +198,7 @@ volumes:
     name: ${PROJECT_NAME}_log-processor-data
 
 networks:
-  single-node_default:
-    external: true
+
   soar-network:
     driver: bridge
     ipam:
