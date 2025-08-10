@@ -47,11 +47,11 @@ services:
     ports:
       - "${WEBAPP_PORT:-8080}:80"
     environment:
-      - MYSQL_HOSTNAME=${DB_HOST:-mysql-db}
-      - MYSQL_DATABASE=${DB_NAME:-dvwa}
-      - MYSQL_USERNAME=${DB_USER:-dvwa}
-      - MYSQL_PASSWORD=${DB_PASSWORD:-p@ssw0rd}
-      - DVWA_DIFFICULTY=${DVWA_DIFFICULTY:-low}
+      - MYSQL_HOSTNAME=${DB_HOST}
+      - MYSQL_DATABASE=${DB_NAME}
+      - MYSQL_USERNAME=${DB_USER}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+      - DVWA_DIFFICULTY=${DVWA_DIFFICULTY}
     # - DVWA_RECAPTCHA_PUBLIC_KEY=${DVWA_RECAPTCHA_PUBLIC_KEY:-}
     # - DVWA_RECAPTCHA_PRIVATE_KEY=${DVWA_RECAPTCHA_PRIVATE_KEY:-}
     depends_on:
@@ -72,14 +72,14 @@ services:
   # Base de données MySQL pour DVWA
   mysql-db:
     image: ${DB_IMAGE:-mysql:8.0}
-    container_name: ${DB_CONTAINER_NAME:-mysql-dvwa}
+    container_name: ${DB_CONTAINER_NAME}
     environment:
-      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD:-rootpassword}
-      - MYSQL_DATABASE=${DB_NAME:-dvwa}
-      - MYSQL_USER=${DB_USER:-dvwa}
-      - MYSQL_PASSWORD=${DB_PASSWORD:-p@ssw0rd}
-      - MYSQL_CHARACTER_SET_SERVER=${DB_CHARSET:-utf8mb4}
-      - MYSQL_COLLATION_SERVER=${DB_COLLATION:-utf8mb4_unicode_ci}
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${DB_NAME}
+      - MYSQL_USER=${DB_USER}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+      - MYSQL_CHARACTER_SET_SERVER=${DB_CHARSET}
+      - MYSQL_COLLATION_SERVER=${DB_COLLATION}
     volumes:
       - mysql-data:/var/lib/mysql
       - ./database/init:/docker-entrypoint-initdb.d:ro
@@ -99,15 +99,15 @@ services:
     container_name: ${WAZUH_AGENT_CONTAINER_NAME}
     environment:
       - WAZUH_MANAGER=${WAZUH_MANAGER_IP}
-      - WAZUH_MANAGER_PORT=${WAZUH_MANAGER_PORT:-1514}
-      - WAZUH_PROTOCOL=${WAZUH_PROTOCOL:-tcp}
-      - WAZUH_REGISTRATION_SERVER=${WAZUH_REGISTRATION_SERVER:-${WAZUH_MANAGER_IP}}
-      - WAZUH_REGISTRATION_PORT=${WAZUH_REGISTRATION_PORT:-1515}
-      - WAZUH_AGENT_GROUP=${WAZUH_AGENT_GROUP:-modsecurity}
-      - WAZUH_AGENT_NAME=${WAZUH_AGENT_NAME:-modsecurity-waf}
-      - WAZUH_KEEP_ALIVE_INTERVAL=${WAZUH_KEEP_ALIVE_INTERVAL:-60}
-      - WAZUH_TIME_RECONNECT=${WAZUH_TIME_RECONNECT:-60}
-      - WAZUH_AUTO_RESTART=${WAZUH_AUTO_RESTART:-yes}
+      - WAZUH_MANAGER_PORT=${WAZUH_MANAGER_PORT}
+      - WAZUH_PROTOCOL=${WAZUH_PROTOCOL}
+      - WAZUH_REGISTRATION_SERVER=${WAZUH_REGISTRATION_SERVER}
+      - WAZUH_REGISTRATION_PORT=${WAZUH_REGISTRATION_PORT}
+      - WAZUH_AGENT_GROUP=${WAZUH_AGENT_GROUP}
+      - WAZUH_AGENT_NAME=${WAZUH_AGENT_NAME}
+      - WAZUH_KEEP_ALIVE_INTERVAL=${WAZUH_KEEP_ALIVE_INTERVAL}
+      - WAZUH_TIME_RECONNECT=${WAZUH_TIME_RECONNECT}
+      - WAZUH_AUTO_RESTART=${WAZUH_AUTO_RESTART}
     volumes:
       - ./wazuh-config/ossec.conf:/var/ossec/etc/ossec.conf:ro
       - ./logs:/var/log/apache2:ro
@@ -132,22 +132,22 @@ services:
     build:
       context: ./scripts
       dockerfile: Dockerfile.log-processor
-    container_name: ${LOG_PROCESSOR_CONTAINER_NAME:-log-processor}
+    container_name: ${LOG_PROCESSOR_CONTAINER_NAME}
     environment:
       - N8N_WEBHOOK_URL=${N8N_WEBHOOK_URL}
       - WAZUH_MANAGER_API=${WAZUH_MANAGER_API}
-      - WAZUH_API_USER=${WAZUH_API_USER:-wazuh}
-      - WAZUH_API_PASSWORD=${WAZUH_API_PASSWORD:-wazuh}
+      - WAZUH_API_USER=${WAZUH_API_USER}
+      - WAZUH_API_PASSWORD=${WAZUH_API_PASSWORD:}
       - THEHIVE_URL=${THEHIVE_URL}
       - THEHIVE_API_KEY=${THEHIVE_API_KEY}
       - CORTEX_URL=${CORTEX_URL}
       - CORTEX_API_KEY=${CORTEX_API_KEY}
       - MISP_URL=${MISP_URL}
       - MISP_API_KEY=${MISP_API_KEY}
-      - ALERT_THROTTLE_MINUTES=${ALERT_THROTTLE_MINUTES:-5}
-      - LOG_LEVEL=${LOG_LEVEL:-INFO}
-      - ANALYST_NAME=${ANALYST_NAME:-Med10S}
-      - ENVIRONMENT=${ENVIRONMENT:-SOAR-Lab}
+      - ALERT_THROTTLE_MINUTES=${ALERT_THROTTLE_MINUTES}
+      - LOG_LEVEL=${LOG_LEVEL}
+      - ANALYST_NAME=${ANALYST_NAME}
+      - ENVIRONMENT=${ENVIRONMENT}
     volumes:
       - ./scripts:/scripts:ro
       - ./logs:/var/log/apache2:rw
@@ -169,13 +169,13 @@ services:
 
   # Service de monitoring et healthcheck
   monitoring:
-    image: ${MONITORING_IMAGE:-alpine:latest}
-    container_name: ${MONITORING_CONTAINER_NAME:-soar-monitoring}
+    image: ${MONITORING_IMAGE}
+    container_name: ${MONITORING_CONTAINER_NAME}
     environment:
-      - MONITORING_INTERVAL=${MONITORING_INTERVAL:-60}
+      - MONITORING_INTERVAL=${MONITORING_INTERVAL}
       - ALERT_EMAIL=${ALERT_EMAIL}
       - SMTP_SERVER=${SMTP_SERVER}
-      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_PORT=${SMTP_PORT}
       - SMTP_USER=${SMTP_USER}
       - SMTP_PASSWORD=${SMTP_PASSWORD}
     volumes:
@@ -193,13 +193,13 @@ services:
 volumes:
   mysql-data:
     driver: local
-    name: ${PROJECT_NAME:-modsecurity-soar}_mysql-data
+    name: ${PROJECT_NAME}_mysql-data
   wazuh-agent-data:
     driver: local
-    name: ${PROJECT_NAME:-modsecurity-soar}_wazuh-data
+    name: ${PROJECT_NAME}_wazuh-data
   log-processor-data:
     driver: local
-    name: ${PROJECT_NAME:-modsecurity-soar}_log-processor-data
+    name: ${PROJECT_NAME}_log-processor-data
 
 networks:
   single-node_default:
