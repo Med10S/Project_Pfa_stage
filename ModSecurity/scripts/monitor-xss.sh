@@ -4,7 +4,7 @@
 # Créé par Med10S - 2025-08-08
 
 LOG_FILE="/var/log/apache2/modsec_audit.log"
-WEBHOOK_URL="http://n8n:5678/webhook/modsecurity-xss"
+WEBHOOK_URL="http://192.168.15.3:5678/webhook/modsecurity-xss"
 LAST_POSITION_FILE="/tmp/modsec_last_position"
 
 # Couleurs pour les logs
