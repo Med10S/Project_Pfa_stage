@@ -3,26 +3,26 @@
 services:
   # ModSecurity avec Apache
   modsecurity-apache:
-    image: ${MODSECURITY_IMAGE:-owasp/modsecurity:3.0.12-apache}
-    container_name: ${MODSECURITY_CONTAINER_NAME:-modsecurity-waf}
+    image: ${MODSECURITY_IMAGE}
+    container_name: ${MODSECURITY_CONTAINER_NAME}
     ports:
-      - "${HTTP_PORT:-80}:80"
-      - "${HTTPS_PORT:-443}:443"
+      - "${HTTP_PORT}:80"
+      - "${HTTPS_PORT}:443"
     volumes:
       - ./modsecurity-config:/etc/modsecurity.d:ro
       - ./apache-config:/etc/apache2/sites-available:ro
       - ./logs:/var/log/apache2
       - ./ssl:/etc/ssl/certs:ro
     environment:
-      - MODSEC_RULE_ENGINE=${MODSEC_RULE_ENGINE:-On}
-      - MODSEC_REQ_BODY_ACCESS=${MODSEC_REQ_BODY_ACCESS:-On}
-      - MODSEC_REQ_BODY_LIMIT=${MODSEC_REQ_BODY_LIMIT:-13107200}
-      - MODSEC_REQ_BODY_NOFILES_LIMIT=${MODSEC_REQ_BODY_NOFILES_LIMIT:-131072}
-      - MODSEC_RESP_BODY_ACCESS=${MODSEC_RESP_BODY_ACCESS:-On}
-      - MODSEC_RESP_BODY_LIMIT=${MODSEC_RESP_BODY_LIMIT:-524288}
-      - BACKEND_HOST=${WEBAPP_SERVICE_NAME:-webapp}
-      - BACKEND_PORT=${WEBAPP_INTERNAL_PORT:-80}
-      - SERVER_NAME=${SERVER_NAME:-modsecurity.local}
+      - MODSEC_RULE_ENGINE=${MODSEC_RULE_ENGINE}
+      - MODSEC_REQ_BODY_ACCESS=${MODSEC_REQ_BODY_ACCESS}
+      - MODSEC_REQ_BODY_LIMIT=${MODSEC_REQ_BODY_LIMIT}
+      - MODSEC_REQ_BODY_NOFILES_LIMIT=${MODSEC_REQ_BODY_NOFILES_LIMIT}
+      - MODSEC_RESP_BODY_ACCESS=${MODSEC_RESP_BODY_ACCESS}
+      - MODSEC_RESP_BODY_LIMIT=${MODSEC_RESP_BODY_LIMIT}
+      - BACKEND_HOST=${WEBAPP_SERVICE_NAME}
+      - BACKEND_PORT=${WEBAPP_INTERNAL_PORT}
+      - SERVER_NAME=${SERVER_NAME}
     depends_on:
       - webapp
     dns:
@@ -30,7 +30,7 @@ services:
     networks:
       - single-node_default
       - soar-network
-    restart: ${RESTART_POLICY:-unless-stopped}
+    restart: ${RESTART_POLICY}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:80/server-status"]
       interval: 30s
@@ -38,14 +38,14 @@ services:
       retries: 3
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.modsecurity.rule=Host(`${SERVER_NAME:-modsecurity.local}`)"
+      - "traefik.http.routers.modsecurity.rule=Host(`${SERVER_NAME}`)"
 
   # Application web de test (DVWA)
   webapp:
-    image: ${WEBAPP_IMAGE:-vulnerables/web-dvwa}
-    container_name: ${WEBAPP_CONTAINER_NAME:-dvwa-app}
+    image: ${WEBAPP_IMAGE}
+    container_name: ${WEBAPP_CONTAINER_NAME}
     ports:
-      - "${WEBAPP_PORT:-8080}:80"
+      - "${WEBAPP_PORT}:80"
     environment:
       - MYSQL_HOSTNAME=${DB_HOST}
       - MYSQL_DATABASE=${DB_NAME}
@@ -62,7 +62,7 @@ services:
     networks:
       - single-node_default
       - soar-network
-    restart: ${RESTART_POLICY:-unless-stopped}
+    restart: ${RESTART_POLICY}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/"]
       interval: 30s
@@ -85,7 +85,7 @@ services:
       - ./database/init:/docker-entrypoint-initdb.d:ro
     networks:
       - soar-network
-    restart: ${RESTART_POLICY:-unless-stopped}
+    restart: ${RESTART_POLICY}
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD}"]
       interval: 10s
@@ -156,7 +156,7 @@ services:
     networks:
       - single-node_default
       - soar-network
-    restart: ${RESTART_POLICY:-unless-stopped}
+    restart: ${RESTART_POLICY}
     dns:
       - 192.168.15.3
     depends_on:
@@ -187,7 +187,7 @@ services:
     networks:
       - single-node_default
       - soar-network
-    restart: ${RESTART_POLICY:-unless-stopped}
+    restart: ${RESTART_POLICY}
     command: /bin/sh -c "apk add --no-cache curl docker-cli python3 py3-pip && pip3 install requests && /monitoring/healthcheck.sh"
 
 volumes:
@@ -206,7 +206,7 @@ networks:
     external: true
   soar-network:
     driver: bridge
-    name: ${PROJECT_NAME:-modsecurity-soar}_network
+    name: ${PROJECT_NAME}_network
     ipam:
       config:
-        - subnet: ${NETWORK_SUBNET:-172.20.0.0/16}
+        - subnet: ${NETWORK_SUBNET}
