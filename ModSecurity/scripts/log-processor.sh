@@ -22,31 +22,72 @@ echo -e "${BLUE}🔍 Wazuh API: $WAZUH_API${NC}"
 # Fonction pour envoyer vers n8n ET créer un événement Wazuh custom
 process_xss_alert() {
     local log_entry="$1"
-    local timestamp=$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)
+    local timestamp=$(echo "$log_entry" | jq -r '.transaction.time_stamp // "unknown"' 2>/dev/null)
     
-    # Extraction des informations de l'alerte
+    # Extraction des informations de l'alerte depuis le nouveau format
     local client_ip=$(echo "$log_entry" | jq -r '.transaction.client_ip // "unknown"' 2>/dev/null)
+    local client_port=$(echo "$log_entry" | jq -r '.transaction.client_port // "unknown"' 2>/dev/null)
+    local host_ip=$(echo "$log_entry" | jq -r '.transaction.host_ip // "unknown"' 2>/dev/null)
+    local host_port=$(echo "$log_entry" | jq -r '.transaction.host_port // "unknown"' 2>/dev/null)
+    local unique_id=$(echo "$log_entry" | jq -r '.transaction.unique_id // "unknown"' 2>/dev/null)
+    local server_id=$(echo "$log_entry" | jq -r '.transaction.server_id // "unknown"' 2>/dev/null)
+    local method=$(echo "$log_entry" | jq -r '.transaction.request.method // "unknown"' 2>/dev/null)
+    local http_version=$(echo "$log_entry" | jq -r '.transaction.request.http_version // "unknown"' 2>/dev/null)
+    local uri=$(echo "$log_entry" | jq -r '.transaction.request.uri // "unknown"' 2>/dev/null)
+    local user_agent=$(echo "$log_entry" | jq -r '.transaction.request.headers."User-Agent" // "unknown"' 2>/dev/null)
+    local referer=$(echo "$log_entry" | jq -r '.transaction.request.headers.Referer // "unknown"' 2>/dev/null)
+    local http_code=$(echo "$log_entry" | jq -r '.transaction.response.http_code // "unknown"' 2>/dev/null)
     local rule_id=$(echo "$log_entry" | jq -r '.messages[0].details.ruleId // "unknown"' 2>/dev/null)
-    local attack_payload=$(echo "$log_entry" | jq -r '.transaction.request.body // .transaction.request.uri // "unknown"' 2>/dev/null)
+    local rule_message=$(echo "$log_entry" | jq -r '.messages[0].message // "unknown"' 2>/dev/null)
+    local match_data=$(echo "$log_entry" | jq -r '.messages[0].details.data // "unknown"' 2>/dev/null)
+    local rule_file=$(echo "$log_entry" | jq -r '.messages[0].details.file // "unknown"' 2>/dev/null)
+    local line_number=$(echo "$log_entry" | jq -r '.messages[0].details.lineNumber // "unknown"' 2>/dev/null)
+    local rule_severity=$(echo "$log_entry" | jq -r '.messages[0].details.severity // "2"' 2>/dev/null)
+    local modsec_version=$(echo "$log_entry" | jq -r '.producer.modsecurity // "unknown"' 2>/dev/null)
+    local connector_version=$(echo "$log_entry" | jq -r '.producer.connector // "unknown"' 2>/dev/null)
+    
+    # Extraction du payload XSS depuis l'URI décodée
+    local attack_payload=$(echo "$uri" | python3 -c "import sys, urllib.parse; print(urllib.parse.unquote(sys.stdin.read().strip()))" 2>/dev/null || echo "$uri")
     local severity="HIGH"
     
-    # Classification du type d'attaque XSS
+    # Classification du type d'attaque XSS basée sur le payload et les détails
     local xss_type="unknown"
-    if echo "$attack_payload" | grep -qi "script.*>"; then
+    local attack_vector="unknown"
+    
+    # Détermination du type d'attaque basée sur le payload décodé
+    if echo "$attack_payload" | grep -qi "<script.*>.*</script>"; then
         xss_type="reflected_script_injection"
+        attack_vector="script_tag"
         severity="CRITICAL"
     elif echo "$attack_payload" | grep -qi "javascript:"; then
         xss_type="javascript_protocol_injection"
+        attack_vector="javascript_protocol"
         severity="HIGH"
-    elif echo "$attack_payload" | grep -qi "onerror\|onload\|onclick"; then
+    elif echo "$attack_payload" | grep -qi "onerror\|onload\|onclick\|onmouseover\|onfocus"; then
         xss_type="event_handler_injection"
+        attack_vector="event_handler"
         severity="HIGH"
-    elif echo "$attack_payload" | grep -qi "iframe\|embed"; then
+    elif echo "$attack_payload" | grep -qi "<iframe\|<embed\|<object"; then
         xss_type="iframe_injection"
+        attack_vector="iframe_embed"
+        severity="HIGH"
+    elif echo "$attack_payload" | grep -qi "alert\|prompt\|confirm"; then
+        xss_type="javascript_function_injection"
+        attack_vector="js_function"
         severity="HIGH"
     fi
     
-    # Payload pour n8n (format enrichi)
+    # Ajustement de la sévérité selon le code de réponse HTTP
+    if [ "$http_code" = "403" ]; then
+        local mitigation_status="blocked"
+    elif [ "$http_code" = "200" ]; then
+        local mitigation_status="allowed"
+        severity="CRITICAL"  # Plus grave si l'attaque a passé
+    else
+        local mitigation_status="unknown"
+    fi
+    
+    # Payload pour n8n (format enrichi et adapté au nouveau format)
     local n8n_payload=$(cat <<EOF
 {
     "timestamp": "$timestamp",
@@ -54,21 +95,45 @@ process_xss_alert() {
     "alert_type": "XSS_Detection",
     "severity": "$severity",
     "xss_classification": "$xss_type",
-    "attack_details": {
+    "attack_vector": "$attack_vector",
+    "transaction_details": {
+        "unique_id": "$unique_id",
+        "server_id": "$server_id",
         "client_ip": "$client_ip",
+        "client_port": "$client_port",
+        "host_ip": "$host_ip",
+        "host_port": "$host_port",
+        "http_method": "$method",
+        "http_version": "$http_version",
+        "uri": "$uri",
+        "decoded_uri": "$(echo "$attack_payload" | head -c 500)",
+        "user_agent": "$(echo "$user_agent" | head -c 200)",
+        "referer": "$referer",
+        "response_code": "$http_code"
+    },
+    "attack_details": {
         "rule_id": "$rule_id",
-        "payload": "$(echo "$attack_payload" | head -c 200)",
+        "rule_message": "$rule_message",
+        "match_data": "$(echo "$match_data" | head -c 300)",
+        "rule_file": "$rule_file",
+        "line_number": "$line_number",
+        "rule_severity": "$rule_severity",
         "payload_length": $(echo "$attack_payload" | wc -c),
         "encoded_payload": $(echo "$attack_payload" | base64 -w 0)
+    },
+    "producer_info": {
+        "modsecurity_version": "$modsec_version",
+        "connector_version": "$connector_version"
     },
     "geolocation": {
         "ip": "$client_ip",
         "lookup_required": true
     },
     "mitigation": {
-        "blocked": true,
+        "status": "$mitigation_status",
         "waf_engine": "ModSecurity",
-        "action_required": "investigate"
+        "action_required": "investigate",
+        "blocked": $([ "$mitigation_status" = "blocked" ] && echo "true" || echo "false")
     },
     "raw_log": $log_entry,
     "analyst": "Med10S",
@@ -96,9 +161,9 @@ EOF
         echo -e "${RED}❌ Erreur envoi n8n: $n8n_response${NC}"
     fi
     
-    # Log structuré pour Wazuh (format custom)
+    # Log structuré pour Wazuh (format custom enrichi)
     local wazuh_log=$(cat <<EOF
-$(date '+%b %d %H:%M:%S') modsecurity-waf: XSS_ALERT: severity="$severity" client_ip="$client_ip" rule_id="$rule_id" xss_type="$xss_type" payload_size=$(echo "$attack_payload" | wc -c) action="blocked" analyst="Med10S"
+$(date '+%b %d %H:%M:%S') modsecurity-waf: XSS_ALERT: severity="$severity" client_ip="$client_ip:$client_port" host="$host_ip:$host_port" rule_id="$rule_id" xss_type="$xss_type" attack_vector="$attack_vector" payload_size=$(echo "$attack_payload" | wc -c) http_code="$http_code" mitigation="$mitigation_status" unique_id="$unique_id" user_agent="$(echo "$user_agent" | head -c 100)" analyst="Med10S"
 EOF
 )
     
@@ -127,9 +192,17 @@ monitor_logs() {
                     if [ -n "$line" ]; then
                         # Vérification si c'est du JSON valide
                         if echo "$line" | jq . >/dev/null 2>&1; then
-                            # Vérification si c'est une alerte XSS
-                            if echo "$line" | jq -r '.messages[]?.msg // ""' 2>/dev/null | grep -qi "xss\|script\|javascript\|onerror\|onload"; then
-                                echo -e "${RED}🚨 ALERTE XSS DÉTECTÉE!${NC}"
+                            # Vérification si c'est une alerte XSS dans le nouveau format
+                            local has_xss_message=$(echo "$line" | jq -r '.messages[]?.message // ""' 2>/dev/null | grep -qi "xss\|script\|javascript" && echo "yes" || echo "no")
+                            local has_xss_data=$(echo "$line" | jq -r '.messages[]?.details.data // ""' 2>/dev/null | grep -qi "xss\|script\|alert\|onerror\|onload" && echo "yes" || echo "no")
+                            local has_xss_uri=$(echo "$line" | jq -r '.transaction.request.uri // ""' 2>/dev/null | grep -qi "script\|javascript\|alert\|onerror\|onload" && echo "yes" || echo "no")
+                            
+                            if [ "$has_xss_message" = "yes" ] || [ "$has_xss_data" = "yes" ] || [ "$has_xss_uri" = "yes" ]; then
+                                echo -e "${RED}🚨 ALERTE XSS DÉTECTÉE! (Format JSON ModSecurity)${NC}"
+                                local rule_id=$(echo "$line" | jq -r '.messages[0].details.ruleId // "unknown"' 2>/dev/null)
+                                local client_ip=$(echo "$line" | jq -r '.transaction.client_ip // "unknown"' 2>/dev/null)
+                                local http_code=$(echo "$line" | jq -r '.transaction.response.http_code // "unknown"' 2>/dev/null)
+                                echo -e "${BLUE}📊 Règle: $rule_id | IP: $client_ip | Code HTTP: $http_code${NC}"
                                 process_xss_alert "$line"
                             fi
                         else
