@@ -1,0 +1,55 @@
+FROM alpine:3.18
+
+# Métadonnées
+LABEL maintainer="Med10S <med10s@soar-lab.com>"
+LABEL description="SOAR ModSecurity Log Processor"
+LABEL version="1.0.0"
+
+# Installation des dépendances
+RUN apk add --no-cache \
+    bash \
+    curl \
+    jq \
+    python3 \
+    py3-pip \
+    py3-requests \
+    py3-urllib3 \
+    tzdata \
+    && pip3 install --no-cache-dir \
+    requests \
+    urllib3 \
+    python-dateutil \
+    pyyaml
+
+# Configuration du timezone
+ENV TZ=UTC
+
+# Création de l'utilisateur non-root
+RUN addgroup -S soar && adduser -S soar -G soar
+
+# Création des répertoires
+RUN mkdir -p /data /logs /scripts /monitoring \
+    && chown -R soar:soar /data /logs /scripts /monitoring
+
+# Copie des scripts
+COPY log-processor.sh /scripts/
+COPY xss-analyzer.py /scripts/
+COPY healthcheck-internal.sh /scripts/
+
+# Permissions
+RUN chmod +x /scripts/*.sh /scripts/*.py
+
+# Utilisateur non-root
+USER soar
+
+# Variables d'environnement par défaut
+ENV LOG_LEVEL=INFO
+ENV ANALYST_NAME=Med10S
+ENV ENVIRONMENT=SOAR-Lab
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD /scripts/healthcheck-internal.sh
+
+# Point d'entrée
+ENTRYPOINT ["/scripts/log-processor.sh"]

@@ -16,7 +16,7 @@ import base64
 import urllib.parse
 
 # Configuration
-WEBHOOK_URL = "http://your-n8n-instance:5678/webhook/wazuh-xss-analysis"
+WEBHOOK_URL = "http://n8n:5678/webhook/wazuh-xss-analysis"
 XSS_PATTERNS = [
     r'<script[^>]*>.*?</script[^>]*>',
     r'javascript:\s*[^;]+',
@@ -205,7 +205,7 @@ def main():
                 print(f"🎯 Patterns détectés: {len(analysis_result['patterns_matched'])}")
                 
                 # Envoi vers n8n si webhook configuré
-                if WEBHOOK_URL != "http://your-n8n-instance:5678/webhook/wazuh-xss-analysis":
+                if WEBHOOK_URL != "http://n8n:5678/webhook/wazuh-xss-analysis":
                     analyzer.send_analysis_webhook(analysis_result, log_data)
                 
                 # Sortie pour Wazuh (format JSON)

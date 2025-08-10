@@ -32,7 +32,6 @@ wazuh-docker/single-node/docker-compose.yml.bak
 !/**/.gitkeep
 
 # Ignore .env file (users should copy dot.env.template to .env and complete it before running docker compose commands)
-/*/.env
 # Ignore .DS_Store files
 /**/.DS_Store
 # Ignore server keys/certs
