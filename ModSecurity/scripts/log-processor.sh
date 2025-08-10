@@ -37,12 +37,12 @@ process_xss_alert() {
     local user_agent=$(echo "$log_entry" | jq -r '.transaction.request.headers."User-Agent" // "unknown"' 2>/dev/null)
     local referer=$(echo "$log_entry" | jq -r '.transaction.request.headers.Referer // "unknown"' 2>/dev/null)
     local http_code=$(echo "$log_entry" | jq -r '.transaction.response.http_code // "unknown"' 2>/dev/null)
-    local rule_id=$(echo "$log_entry" | jq -r '.messages[0].details.ruleId // "unknown"' 2>/dev/null)
-    local rule_message=$(echo "$log_entry" | jq -r '.messages[0].message // "unknown"' 2>/dev/null)
-    local match_data=$(echo "$log_entry" | jq -r '.messages[0].details.data // "unknown"' 2>/dev/null)
-    local rule_file=$(echo "$log_entry" | jq -r '.messages[0].details.file // "unknown"' 2>/dev/null)
-    local line_number=$(echo "$log_entry" | jq -r '.messages[0].details.lineNumber // "unknown"' 2>/dev/null)
-    local rule_severity=$(echo "$log_entry" | jq -r '.messages[0].details.severity // "2"' 2>/dev/null)
+    local rule_id=$(echo "$log_entry" | jq -r '.transaction.messages[0].details.ruleId // "unknown"' 2>/dev/null)
+    local rule_message=$(echo "$log_entry" | jq -r '.transaction.messages[0].message // "unknown"' 2>/dev/null)
+    local match_data=$(echo "$log_entry" | jq -r '.transaction.messages[0].details.data // "unknown"' 2>/dev/null)
+    local rule_file=$(echo "$log_entry" | jq -r '.transaction.messages[0].details.file // "unknown"' 2>/dev/null)
+    local line_number=$(echo "$log_entry" | jq -r '.transaction.messages[0].details.lineNumber // "unknown"' 2>/dev/null)
+    local rule_severity=$(echo "$log_entry" | jq -r '.transaction.messages[0].details.severity // "2"' 2>/dev/null)
     local modsec_version=$(echo "$log_entry" | jq -r '.producer.modsecurity // "unknown"' 2>/dev/null)
     local connector_version=$(echo "$log_entry" | jq -r '.producer.connector // "unknown"' 2>/dev/null)
     
@@ -197,14 +197,14 @@ monitor_logs() {
                         # Vérification si c'est du JSON valide
                         if echo "$line" | jq . >/dev/null 2>&1; then
                             # Vérification si cette entrée a des messages ModSecurity
-                            local messages_count=$(echo "$line" | jq -r '.messages | length' 2>/dev/null || echo "0")
+                            local messages_count=$(echo "$line" | jq -r '.transaction.messages | length' 2>/dev/null || echo "0")
                             
                             if [ "$messages_count" -gt "0" ]; then
                                 echo -e "${GREEN}✅ JSON avec $messages_count message(s) trouvé${NC}"
                                 
                                 # Extraction des détails pour debugging
-                                local rule_id=$(echo "$line" | jq -r '.messages[0].details.ruleId // "unknown"' 2>/dev/null)
-                                local message_text=$(echo "$line" | jq -r '.messages[0].message // "unknown"' 2>/dev/null)
+                                local rule_id=$(echo "$line" | jq -r '.transaction.messages[0].details.ruleId // "unknown"' 2>/dev/null)
+                                local message_text=$(echo "$line" | jq -r '.transaction.messages[0].message // "unknown"' 2>/dev/null)
                                 local client_ip=$(echo "$line" | jq -r '.transaction.client_ip // "unknown"' 2>/dev/null)
                                 local uri=$(echo "$line" | jq -r '.transaction.request.uri // "unknown"' 2>/dev/null)
                                 local http_code=$(echo "$line" | jq -r '.transaction.response.http_code // "unknown"' 2>/dev/null)
@@ -222,7 +222,7 @@ monitor_logs() {
                                 fi
                                 
                                 # Vérification dans les données de règle
-                                local rule_data=$(echo "$line" | jq -r '.messages[0].details.data // ""' 2>/dev/null)
+                                local rule_data=$(echo "$line" | jq -r '.transaction.messages[0].details.data // ""' 2>/dev/null)
                                 if echo "$rule_data" | grep -qi "xss\|script\|alert\|onerror\|onload\|javascript"; then
                                     is_xss_alert="yes"
                                     echo -e "${RED}🎯 XSS détecté dans les données: $rule_data${NC}"
