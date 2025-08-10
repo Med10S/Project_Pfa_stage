@@ -71,7 +71,7 @@ services:
 
   # Base de données MySQL pour DVWA
   mysql-db:
-    image: ${DB_IMAGE:-mysql:8.0}
+    image: ${DB_IMAGE}
     container_name: ${DB_CONTAINER_NAME}
     environment:
       - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
