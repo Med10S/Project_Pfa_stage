@@ -187,25 +187,70 @@ monitor_logs() {
             local current_size=$(stat -c%s "$LOG_FILE" 2>/dev/null || echo "0")
             
             if [ "$current_size" -gt "$last_pos" ]; then
-                # Lecture des nouvelles lignes
+                echo -e "${BLUE}📈 Nouveaux logs détectés (taille: $current_size, position: $last_pos)${NC}"
+                
+                # Lecture ligne par ligne des nouvelles données
                 tail -c +$((last_pos + 1)) "$LOG_FILE" | while IFS= read -r line; do
                     if [ -n "$line" ]; then
+                        echo -e "${YELLOW}🔍 Analyse de ligne: $(echo "$line" | head -c 100)...${NC}"
+                        
                         # Vérification si c'est du JSON valide
                         if echo "$line" | jq . >/dev/null 2>&1; then
-                            # Vérification si c'est une alerte XSS dans le nouveau format
-                            local has_xss_message=$(echo "$line" | jq -r '.messages[]?.message // ""' 2>/dev/null | grep -qi "xss\|script\|javascript" && echo "yes" || echo "no")
-                            local has_xss_data=$(echo "$line" | jq -r '.messages[]?.details.data // ""' 2>/dev/null | grep -qi "xss\|script\|alert\|onerror\|onload" && echo "yes" || echo "no")
-                            local has_xss_uri=$(echo "$line" | jq -r '.transaction.request.uri // ""' 2>/dev/null | grep -qi "script\|javascript\|alert\|onerror\|onload" && echo "yes" || echo "no")
+                            # Vérification si cette entrée a des messages ModSecurity
+                            local messages_count=$(echo "$line" | jq -r '.messages | length' 2>/dev/null || echo "0")
                             
-                            if [ "$has_xss_message" = "yes" ] || [ "$has_xss_data" = "yes" ] || [ "$has_xss_uri" = "yes" ]; then
-                                echo -e "${RED}🚨 ALERTE XSS DÉTECTÉE! (Format JSON ModSecurity)${NC}"
+                            if [ "$messages_count" -gt "0" ]; then
+                                echo -e "${GREEN}✅ JSON avec $messages_count message(s) trouvé${NC}"
+                                
+                                # Extraction des détails pour debugging
                                 local rule_id=$(echo "$line" | jq -r '.messages[0].details.ruleId // "unknown"' 2>/dev/null)
+                                local message_text=$(echo "$line" | jq -r '.messages[0].message // "unknown"' 2>/dev/null)
                                 local client_ip=$(echo "$line" | jq -r '.transaction.client_ip // "unknown"' 2>/dev/null)
+                                local uri=$(echo "$line" | jq -r '.transaction.request.uri // "unknown"' 2>/dev/null)
                                 local http_code=$(echo "$line" | jq -r '.transaction.response.http_code // "unknown"' 2>/dev/null)
-                                echo -e "${BLUE}📊 Règle: $rule_id | IP: $client_ip | Code HTTP: $http_code${NC}"
-                                process_xss_alert "$line"
+                                
+                                echo -e "${BLUE}📊 Règle: $rule_id | Message: $message_text${NC}"
+                                echo -e "${BLUE}🌐 IP: $client_ip | URI: $(echo "$uri" | head -c 50)... | Code: $http_code${NC}"
+                                
+                                # Vérification si c'est une alerte XSS
+                                local is_xss_alert="no"
+                                
+                                # Vérification dans le message
+                                if echo "$message_text" | grep -qi "xss\|script\|javascript\|injection"; then
+                                    is_xss_alert="yes"
+                                    echo -e "${RED}🎯 XSS détecté dans le message: $message_text${NC}"
+                                fi
+                                
+                                # Vérification dans les données de règle
+                                local rule_data=$(echo "$line" | jq -r '.messages[0].details.data // ""' 2>/dev/null)
+                                if echo "$rule_data" | grep -qi "xss\|script\|alert\|onerror\|onload\|javascript"; then
+                                    is_xss_alert="yes"
+                                    echo -e "${RED}🎯 XSS détecté dans les données: $rule_data${NC}"
+                                fi
+                                
+                                # Vérification dans l'URI
+                                if echo "$uri" | grep -qi "script\|javascript\|alert\|onerror\|onload\|%3C.*%3E"; then
+                                    is_xss_alert="yes"
+                                    echo -e "${RED}🎯 XSS détecté dans URI: $uri${NC}"
+                                fi
+                                
+                                # Vérification par ID de règle (nos règles custom)
+                                if [[ "$rule_id" =~ ^(1001|1002|1003|1004)$ ]]; then
+                                    is_xss_alert="yes"
+                                    echo -e "${RED}🎯 XSS détecté par rule ID: $rule_id${NC}"
+                                fi
+                                
+                                if [ "$is_xss_alert" = "yes" ]; then
+                                    echo -e "${RED}🚨 ALERTE XSS CONFIRMÉE! (Format JSON ModSecurity)${NC}"
+                                    process_xss_alert "$line"
+                                else
+                                    echo -e "${YELLOW}ℹ️ Alerte ModSecurity non-XSS: $message_text${NC}"
+                                fi
+                            else
+                                echo -e "${YELLOW}📋 JSON sans message ModSecurity (requête normale)${NC}"
                             fi
                         else
+                            echo -e "${YELLOW}📝 Format de log non-JSON, recherche de patterns...${NC}"
                             # Log format standard - recherche de patterns XSS
                             if echo "$line" | grep -qi "modsecurity.*xss\|blocked.*script\|attack.*javascript"; then
                                 echo -e "${RED}🚨 ALERTE XSS (format standard)${NC}"
@@ -223,7 +268,7 @@ monitor_logs() {
         }
     },
     "messages": [{
-        "msg": "XSS pattern detected in standard log",
+        "message": "XSS pattern detected in standard log",
         "details": {
             "ruleId": "standard_detection"
         }
@@ -239,6 +284,7 @@ EOF
                 
                 # Mise à jour de la position
                 echo "$current_size" > "$LAST_POSITION_FILE"
+                echo -e "${GREEN}📌 Position mise à jour: $current_size${NC}"
             fi
         else
             echo -e "${YELLOW}⏳ En attente du fichier de log ModSecurity...${NC}"
