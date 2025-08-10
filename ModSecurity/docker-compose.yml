@@ -11,7 +11,7 @@ services:
       - "${HTTPS_PORT}:443"
     volumes:
       - ./modsecurity-config:/etc/modsecurity.d
-      - ./apache-config:/etc/apache2/sites-available:ro
+      - ./nginx-config:/etc/nginx/conf.d
       - ./logs:/var/log/apache2
       - ./ssl:/etc/ssl/certs:ro
     environment:

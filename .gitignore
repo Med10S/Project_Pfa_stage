@@ -41,3 +41,6 @@ wazuh-docker/single-node/docker-compose.yml.bak
 /Thehive_code/testing/cassandra/logs/debug.log
 /Thehive_code/testing/cassandra/logs
 /misp-docker/logs
+
+logs.json
+
