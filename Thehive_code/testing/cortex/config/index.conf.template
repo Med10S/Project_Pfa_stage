@@ -1,5 +1,0 @@
-search {
-  index = cortex
-  user = "elastic"
-  password = "usLpLLwx8jmwH7nB7ZjXM2TfsyYPdq8xiumUZCoM9j2PeNN29OcxB1pSpDZqVy2y"
-}
