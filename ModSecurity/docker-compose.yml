@@ -37,11 +37,6 @@ services:
     networks:
       - soar-network
     restart: ${RESTART_POLICY}
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80/server-status"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.modsecurity.rule=Host(`${SERVER_NAME}`)"
@@ -69,7 +64,7 @@ services:
       - soar-network
     restart: ${RESTART_POLICY}
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8180/"]
+      test: ["CMD", "curl", "-f", "http://localhost:80/"]
       interval: 30s
       timeout: 10s
       retries: 5
