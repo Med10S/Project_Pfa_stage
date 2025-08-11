@@ -9,7 +9,7 @@
 
 <!-- Root decoder for ModSecurity logs -->
 <decoder name="modsecurity">
-  <prematch>^"transaction":</prematch>
+  <prematch>^{"transaction":</prematch>
 </decoder>
 
 <!-- Main JSON decoder for ModSecurity logs -->
