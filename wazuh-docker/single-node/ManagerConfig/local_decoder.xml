@@ -1,8 +1,0 @@
-<!-- Local Decoders -->
-
-<!-- Sysmon DNS Query Decoder -->
-<decoder name="sysmon-dns">
-  <prematch>EventID>22</prematch>
-  <regex offset="after_parent">QueryName>([A-Za-z0-9\-\.]+)</regex>
-  <order>extra_data</order>
-</decoder>
