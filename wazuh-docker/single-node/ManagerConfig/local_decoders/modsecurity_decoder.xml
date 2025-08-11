@@ -165,12 +165,6 @@
   <order>rule_file,line_number</order>
 </decoder>
 
-<!-- Extract attack tags for categorization -->
-<decoder name="modsecurity-attack-tags">
-  <parent>modsecurity</parent>
-  <regex offset="after_parent">"tags":\[([^\]]+)\]</regex>
-  <order>attack_tags</order>
-</decoder>
 
 <!-- XSS specific decoder -->
 <decoder name="modsecurity-xss-attack">
