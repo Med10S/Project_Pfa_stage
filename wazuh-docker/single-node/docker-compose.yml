@@ -45,7 +45,8 @@ services:
       - ./ManagerConfig/rules/0950-sysmon_id_20.xml:/var/ossec/ruleset/rules/0950-sysmon_id_20.xml
       - ./ManagerConfig/ossec.conf:/var/ossec/etc/ossec.conf
       - ./ManagerConfig/active-response:/var/ossec/active-response/bin
-      - ./ManagerConfig/local_decoders/modsecurity_decoder.xml:/var/ossec/etc/decoders/modsecurity_decoder.xml
+
+      - ./ManagerConfig/local_decoders/modsecurity_decoder.xml:/var/ossec/etc/decoders/0000_modsecurity_decoder.xml
 
       - ./ManagerConfig/agent.conf:/var/ossec/etc/shared/default/agent.conf
       - ./ManagerConfig/integrations:/var/ossec/integrations
