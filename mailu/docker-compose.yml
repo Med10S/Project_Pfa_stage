@@ -15,7 +15,7 @@ services:
     networks:
       - single-node_default
     dns:
-      - 192.168.15.3
+      - 192.168.182.128
 
   # Core services
   front:
@@ -44,7 +44,7 @@ services:
     depends_on:
       - resolver
     dns:
-      - 192.168.15.3
+      - 192.168.182.128
 
   resolver:
     image: ${DOCKER_ORG:-ghcr.io/mailu}/${DOCKER_PREFIX:-}unbound:${MAILU_VERSION:-2024.06}
@@ -74,7 +74,7 @@ services:
     networks:
       - single-node_default
     dns:
-      - 192.168.15.3
+      - 192.168.182.128
 
   imap:
     image: ${DOCKER_ORG:-ghcr.io/mailu}/${DOCKER_PREFIX:-}dovecot:${MAILU_VERSION:-2024.06}
@@ -93,7 +93,7 @@ services:
       - front
       - resolver
     dns:
-      - 192.168.15.3
+      - 192.168.182.128
 
   smtp:
     image: ${DOCKER_ORG:-ghcr.io/mailu}/${DOCKER_PREFIX:-}postfix:${MAILU_VERSION:-2024.06}
@@ -114,7 +114,7 @@ services:
     networks:
       - single-node_default
     dns:
-      - 192.168.15.3
+      - 192.168.182.128
 
   oletools:
     image: ${DOCKER_ORG:-ghcr.io/mailu}/${DOCKER_PREFIX:-}oletools:${MAILU_VERSION:-2024.06}
@@ -129,7 +129,7 @@ services:
     depends_on:
       - resolver
     dns:
-      - 192.168.15.3
+      - 192.168.182.128
 
 
   antispam:
@@ -152,7 +152,7 @@ services:
       - oletools
       - resolver
     dns:
-      - 192.168.15.3
+      - 192.168.182.128
 
   # Optional services
 

@@ -7,7 +7,7 @@ services:
     hostname: wazuh.manager
     restart: always
     dns:
-      - 192.168.15.3
+      - 192.168.182.128
     ulimits:
       memlock:
         soft: -1
@@ -70,7 +70,7 @@ services:
     hostname: wazuh.indexer
     restart: always
     dns:
-      - 192.168.15.3
+      - 192.168.182.128
     ports:
       - "9200:9200"
     environment:
@@ -103,7 +103,7 @@ services:
     container_name: wazuh.dashboard
     restart: always
     dns:
-      - 192.168.15.3
+      - 192.168.182.128
     ports:
       - 4443:5601
     environment:

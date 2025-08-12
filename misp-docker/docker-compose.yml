@@ -20,7 +20,7 @@ services:
     image: mariadb:10.11
     restart: always
     dns:
-      - 192.168.15.3
+      - 192.168.182.128
     networks:
       - local-misp
       - single-node_default
@@ -55,7 +55,7 @@ services:
     cap_add:
       - AUDIT_WRITE
     dns:
-      - 192.168.15.3
+      - 192.168.182.128
     build:
       context: core/.
       args:
@@ -260,7 +260,7 @@ services:
       - local-misp
       - single-node_default
     dns:
-      - 192.168.15.3    
+      - 192.168.182.128    
     build:
       context: modules/.
       args:

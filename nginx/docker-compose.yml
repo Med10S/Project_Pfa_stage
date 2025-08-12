@@ -6,7 +6,7 @@ services:
     container_name: nginx-proxy
     restart: always
     dns:
-      - 192.168.15.3
+      - 192.168.182.128
     ports:
       - "80:80"
       - "443:443"

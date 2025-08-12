@@ -89,7 +89,7 @@ services:
     command: '--no-config --no-config-secret'
     user: ${UID}:${GID}
     dns:
-      - 192.168.15.3
+      - 192.168.182.128
     environment:
       - |
         JAVA_OPTS=
@@ -134,7 +134,7 @@ services:
     hostname: cortex
     restart: unless-stopped
     dns:
-      - 192.168.15.3
+      - 192.168.182.128
     environment:
       - |
         JAVA_OPTS=
