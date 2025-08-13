@@ -1,0 +1,183 @@
+{
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "modsecurity-xss",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2,
+            "position": [
+                256,
+                -2144
+            ],
+            "id": "21c2c357-dc73-4fdf-a127-fb204faf21c0",
+            "name": "Webhook",
+            "webhookId": "a90f08f5-8a0a-41bc-83e7-db006342fe94"
+        },
+        {
+            "parameters": {
+                "jsCode": "/**\n * n8n Code Node: OPNsense IP Blocker\n * Final working version - 2025-08-13\n * Tested and verified working with OPNsense API\n */\n\n// Import modules (available in n8n)\nconst { URL } = require('url');\nconst https = require('https');\nconst http = require('http');\n\n// Configuration\nconst OPNSENSE_URL = \"http://192.168.181.1\";\nconst API_KEY = \"ud8fjSvMwTgX9P7fEL4eWUfbOk+3/tiBpmtMh+dQU4OkH4YiJ/iE3aQBpWPXVHpDzyMel5v3Lql98j7e\";\nconst API_SECRET = \"EzfhmRdb8Il60Ab+KQHZ5G1/zbRIU4Kgg5l6HcfQnXXOmHbH2iloqDBjih4EOmfmX1dnf8ifdNndbAND\";\nconst ALIAS_NAME = \"Black_list\";\nconst ALIAS_ID = \"2e9d5f53-be6b-4735-9f32-ffc60baea3f1\";\n\n// Get IP to block from input data or use default\nconst IP_TO_BLOCK = $input.first().json.body.raw_log.transaction.client_ip ;\n\nconsole.log(`🚀 Starting OPNsense IP blocking for: ${IP_TO_BLOCK}`);\n\n// Helper function for API calls using native Node.js\nasync function makeApiCall(endpoint, method = 'GET', body = null) {\n    return new Promise((resolve, reject) => {\n        const fullUrl = `${OPNSENSE_URL}${endpoint}`;\n        const urlParts = new URL(fullUrl);\n        const auth = 'Basic ' + Buffer.from(API_KEY + ':' + API_SECRET).toString('base64');\n\n        const headers = {\n            'Authorization': auth,\n            'Accept': 'application/json'\n        };\n        \n        // Add Content-Type only for POST/PUT with body\n        if (method !== 'GET' && body) {\n            headers['Content-Type'] = 'application/json';\n        }\n\n        const options = {\n            hostname: urlParts.hostname,\n            port: urlParts.port || (urlParts.protocol === 'https:' ? 443 : 80),\n            path: urlParts.pathname + urlParts.search,\n            method: method,\n            headers: headers,\n            timeout: 30000,\n            rejectUnauthorized: false\n        };\n\n        const req = (urlParts.protocol === 'https:' ? https : http).request(options, (res) => {\n            let responseData = '';\n\n            res.on('data', (chunk) => {\n                responseData += chunk;\n            });\n\n            res.on('end', () => {\n                try {\n                    if (res.statusCode >= 200 && res.statusCode < 300) {\n                        const jsonResponse = JSON.parse(responseData);\n                        resolve(jsonResponse);\n                    } else {\n                        reject(new Error(`API call failed: ${res.statusCode} - ${responseData}`));\n                    }\n                } catch (parseError) {\n                    reject(new Error(`Invalid JSON response: ${parseError.message}`));\n                }\n            });\n        });\n\n        req.on('error', (error) => {\n            reject(error);\n        });\n\n        req.on('timeout', () => {\n            req.destroy();\n            reject(new Error('Request timeout'));\n        });\n\n        // Write body if present\n        if (body) {\n            req.write(JSON.stringify(body));\n        } else if (method === 'POST') {\n            req.write('');\n        }\n\n        req.end();\n    });\n}\n\n// Execute the IP blocking process\ntry {\n    // Step 1: Get current alias data\n    console.log(\"📋 Getting current alias data...\");\n    const currentData = await makeApiCall(`/api/firewall/alias/get_item/${ALIAS_ID}`);\n\n    // Extract IPs with selected == 1\n    let currentIPs = [];\n    if (currentData.alias && currentData.alias.content) {\n        const content = currentData.alias.content;\n        for (const [key, value] of Object.entries(content)) {\n            if (value && typeof value === 'object' && value.selected === 1) {\n                if (key.includes('.') && !key.startsWith('__')) {\n                    currentIPs.push(key);\n                }\n            }\n        }\n    }\n\n    console.log(`📋 Current IPs: ${currentIPs.length} found`);\n\n    // Step 2: Add new IP if not exists\n    const ipAlreadyExists = currentIPs.includes(IP_TO_BLOCK);\n    if (!ipAlreadyExists) {\n        currentIPs.push(IP_TO_BLOCK);\n        console.log(`➕ Adding new IP: ${IP_TO_BLOCK}`);\n    } else {\n        console.log(`⚠️ IP ${IP_TO_BLOCK} already exists`);\n    }\n\n    // Step 3: Update alias\n    console.log(\"📋 Updating alias...\");\n    const payload = {\n        \"alias\": {\n            \"authtype\": \"\",\n            \"categories\": \"\",\n            \"content\": currentIPs.join(\"\\n\"),\n            \"counters\": \"0\",\n            \"description\": \"automatique block by n8n\",\n            \"enabled\": \"1\",\n            \"expire\": \"\",\n            \"interface\": \"\",\n            \"name\": ALIAS_NAME,\n            \"password\": \"\",\n            \"path_expression\": \"\",\n            \"proto\": \"\",\n            \"type\": \"host\",\n            \"updatefreq\": \"0.041666666666666664\",\n            \"username\": \"\"\n        },\n        \"authgroup_content\": \"\",\n        \"network_content\": \"\"\n    };\n\n    const updateResponse = await makeApiCall(`/api/firewall/alias/set_item/${ALIAS_ID}`, 'POST', payload);\n    console.log(`✅ Alias updated: ${updateResponse.result}`);\n\n    // Step 4: Apply firewall changes\n    console.log(\"📋 Applying firewall changes...\");\n    const applyResponse = await makeApiCall(\"/api/firewall/alias/reconfigure\", 'POST');\n    console.log(`✅ Firewall reconfigured: ${applyResponse.status}`);\n\n    return {\n        json: {\n            success: true,\n            status_code: 200,\n            message: ipAlreadyExists ? \n                `IP ${IP_TO_BLOCK} was already in blocklist` : \n                `IP ${IP_TO_BLOCK} has been successfully blocked`,\n            ip_info: {\n                blocked_ip: IP_TO_BLOCK,\n                was_already_blocked: ipAlreadyExists,\n                current_ips: currentIPs,\n                total_ips: currentIPs.length,\n                processed_by: \"n8n-opnsense\",\n                processed_at: new Date().toISOString()\n            },\n            api_responses: {\n                update_result: updateResponse.result,\n                apply_status: applyResponse.status\n            }\n        }\n    };\n\n} catch (error) {\n    console.error('💥 IP blocking failed:', error);\n\n    return {\n        json: {\n            success: false,\n            error: error.message,\n            ip_info: {\n                blocked_ip: IP_TO_BLOCK,\n                total_ips: 0,\n                processed_by: \"n8n-opnsense\",\n                processed_at: new Date().toISOString()\n            },\n            message: `Failed to block IP ${IP_TO_BLOCK}: ${error.message}`\n        }\n    };\n}\n"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                464,
+                -2144
+            ],
+            "id": "3aeb707f-c7e8-4eea-aeb0-0d168427227c",
+            "name": "Code4"
+        }
+    ],
+    "connections": {
+        "Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "Code4",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "pinData": {
+        "Webhook": [
+            {
+                "headers": {
+                    "host": "192.168.15.3:5678",
+                    "user-agent": "curl/8.12.1",
+                    "accept": "*/*",
+                    "content-type": "application/json",
+                    "content-length": "4443"
+                },
+                "params": {},
+                "query": {},
+                "body": {
+                    "timestamp": "Mon Aug 11 16:33:13 2025",
+                    "source": "ModSecurity-WAF",
+                    "alert_type": "XSS_Detection",
+                    "severity": "HIGH",
+                    "xss_classification": "reflected_script_injection",
+                    "attack_vector": "script_tag",
+                    "transaction_details": {
+                        "unique_id": "175492999312.752216",
+                        "server_id": "a533dbe993c1ca76269ae833439957e44b3cbdc8",
+                        "client_ip": "192.168.15.3",
+                        "client_port": "42338",
+                        "host_ip": "172.20.0.6",
+                        "host_port": "443",
+                        "http_method": "GET",
+                        "http_version": "1.1",
+                        "uri": "/vulnerabilities/xss_r/?name=%2527%253E%253C%2573%2576%2567%253E%253C%2561%256E%2569%256D%2561%2574%2565%2520%256F%256E%2562%2565%2567%2569%256E%253D%2561%256C%2565%2572%2574%2528%2531%2529%2520%2561%2574%2574%2572%2569%2562%2575%2574%2565%254E%2561%256D%2565%253D%2578%2520%2564%2575%2572%253D%2531%2573%253E",
+                        "decoded_uri": "/vulnerabilities/xss_r/?name=%27%3E%3C%73%76%67%3E%3C%61%6E%69%6D%61%74%65%20%6F%6E%62%65%67%69%6E%3D%61%6C%65%72%74%28%31%29%20%61%74%74%72%69%62%75%74%65%4E%61%6D%65%3D%78%20%64%75%72%3D%31%73%3E",
+                        "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:75.0) Gecko/20100101 Firefox/75.0",
+                        "referer": "unknown",
+                        "response_code": "403"
+                    },
+                    "attack_details": {
+                        "rule_id": "1001",
+                        "rule_message": "XSS Attack Detected and Blocked",
+                        "match_data": "Matched Data: '><svg><animate onbegin=alert(1) attributeName=x dur=1s> found within ARGS:name",
+                        "rule_file": "/etc/modsecurity.d/modsecurity.conf",
+                        "line_number": "277",
+                        "rule_severity": "2",
+                        "payload_length": 198,
+                        "encoded_payload": "L3Z1bG5lcmFiaWxpdGllcy94c3Nfci8/bmFtZT0lMjclM0UlM0MlNzMlNzYlNjclM0UlM0MlNjElNkUlNjklNkQlNjElNzQlNjUlMjAlNkYlNkUlNjIlNjUlNjclNjklNkUlM0QlNjElNkMlNjUlNzIlNzQlMjglMzElMjklMjAlNjElNzQlNzQlNzIlNjklNjIlNzUlNzQlNjUlNEUlNjElNkQlNjUlM0QlNzglMjAlNjQlNzUlNzIlM0QlMzElNzMlM0UK"
+                    },
+                    "producer_info": {
+                        "modsecurity_version": "unknown",
+                        "connector_version": "unknown"
+                    },
+                    "geolocation": {
+                        "ip": "192.168.15.3",
+                        "lookup_required": true
+                    },
+                    "mitigation": {
+                        "status": "blocked",
+                        "waf_engine": "ModSecurity",
+                        "action_required": "investigate",
+                        "blocked": true
+                    },
+                    "raw_log": {
+                        "transaction": {
+                            "client_ip": "192.168.15.3",
+                            "time_stamp": "Mon Aug 11 16:33:13 2025",
+                            "server_id": "a533dbe993c1ca76269ae833439957e44b3cbdc8",
+                            "client_port": 42338,
+                            "host_ip": "172.20.0.6",
+                            "host_port": 443,
+                            "unique_id": "175492999312.752216",
+                            "request": {
+                                "method": "GET",
+                                "http_version": 1.1,
+                                "uri": "/vulnerabilities/xss_r/?name=%2527%253E%253C%2573%2576%2567%253E%253C%2561%256E%2569%256D%2561%2574%2565%2520%256F%256E%2562%2565%2567%2569%256E%253D%2561%256C%2565%2572%2574%2528%2531%2529%2520%2561%2574%2574%2572%2569%2562%2575%2574%2565%254E%2561%256D%2565%253D%2578%2520%2564%2575%2572%253D%2531%2573%253E",
+                                "headers": {
+                                    "Host": "ips.sbihi.soar.ma",
+                                    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:75.0) Gecko/20100101 Firefox/75.0",
+                                    "Cookie": "PHPSESSID=asnf683g4q7m7ojqmba97rbd14; security=low",
+                                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+                                    "Accept-Encoding": "gzip",
+                                    "Connection": "close"
+                                }
+                            },
+                            "response": {
+                                "body": "<html>\r\n<head><title>403 Forbidden</title></head>\r\n<body>\r\n<center><h1>403 Forbidden</h1></center>\r\n<hr><center>nginx/1.22.1</center>\r\n</body>\r\n</html>\r\n",
+                                "http_code": 403,
+                                "headers": {
+                                    "Server": "nginx/1.22.1",
+                                    "Date": "Mon, 11 Aug 2025 16:33:13 GMT",
+                                    "Content-Length": "153",
+                                    "Content-Type": "text/html",
+                                    "Connection": "close"
+                                }
+                            },
+                            "producer": {
+                                "modsecurity": "ModSecurity v3.0.8 (Linux)",
+                                "connector": "ModSecurity-nginx v1.0.3",
+                                "secrules_engine": "Enabled",
+                                "components": []
+                            },
+                            "messages": [
+                                {
+                                    "message": "XSS Attack Detected and Blocked",
+                                    "details": {
+                                        "match": "detected XSS using libinjection.",
+                                        "reference": "v33,168t:utf8toUnicode,t:urlDecodeUni,t:htmlEntityDecode,t:jsDecode,t:cssDecode",
+                                        "ruleId": "1001",
+                                        "file": "/etc/modsecurity.d/modsecurity.conf",
+                                        "lineNumber": "277",
+                                        "data": "Matched Data: '><svg><animate onbegin=alert(1) attributeName=x dur=1s> found within ARGS:name",
+                                        "severity": "2",
+                                        "ver": "",
+                                        "rev": "",
+                                        "tags": [
+                                            "application-multi",
+                                            "language-multi",
+                                            "platform-multi",
+                                            "attack-xss",
+                                            "OWASP_CRS",
+                                            "capec/1000/152/242"
+                                        ],
+                                        "maturity": "0",
+                                        "accuracy": "0"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "analyst": "Med10S",
+                    "environment": "SOAR-Lab"
+                },
+                "webhookUrl": "http://sbihi.soar.ma:5678/webhook/modsecurity-xss",
+                "executionMode": "production"
+            }
+        ]
+    },
+    "meta": {
+        "templateCredsSetupCompleted": true,
+        "instanceId": "bfdb948841afc0ce6bec55b394199f16ae888966216c89472d4c9df5a77cd278"
+    }
+}

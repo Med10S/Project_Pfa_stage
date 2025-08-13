@@ -1,0 +1,118 @@
+{
+    "timestamp": "2025-08-11T14:18:35.298+0000",
+    "rule": {
+        "level": 12,
+        "description": "ModSecurity: Critical XSS Attack Blocked - Source: 192.168.15.1 Target: /vulnerabilities/xss_r/?name=%3Cscript%3Ealert%28%27XSS%27%29%3C%2Fscript%3E",
+        "id": "200001",
+        "firedtimes": 1,
+        "mail": false,
+        "groups": [
+            "modsecurity",
+            "web",
+            "attackattack",
+            "web_attack",
+            "xss",
+            "critical",
+            "blocked"
+        ]
+    },
+    "agent": {
+        "id": "004",
+        "name": "a6448cb2ffdc",
+        "ip": "172.20.0.7"
+    },
+    "manager": {
+        "name": "wazuh.manager"
+    },
+    "id": "1754921915.2093333",
+    "full_log": "{\"transaction\":{\"client_ip\":\"192.168.15.1\",\"time_stamp\":\"Mon Aug 11 14:18:34 2025\",\"server_id\":\"a533dbe993c1ca76269ae833439957e44b3cbdc8\",\"client_port\":43017,\"host_ip\":\"172.20.0.6\",\"host_port\":443,\"unique_id\":\"175492191499.856606\",\"request\":{\"method\":\"GET\",\"http_version\":1.1,\"uri\":\"/vulnerabilities/xss_r/?name=%3Cscript%3Ealert%28%27XSS%27%29%3C%2Fscript%3E\",\"headers\":{\"User-Agent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0\",\"Sec-Fetch-Site\":\"same-origin\",\"sec-ch-ua-platform\":\"\\\"Windows\\\"\",\"Referer\":\"https://ips.sbihi.soar.ma/vulnerabilities/xss_r/\",\"Upgrade-Insecure-Requests\":\"1\",\"sec-ch-ua-mobile\":\"?0\",\"Accept\":\"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7\",\"Cache-Control\":\"max-age=0\",\"sec-ch-ua\":\"\\\"Opera\\\";v=\\\"120\\\", \\\"Not-A.Brand\\\";v=\\\"8\\\", \\\"Chromium\\\";v=\\\"135\\\"\",\"Sec-Fetch-User\":\"?1\",\"Sec-Fetch-Mode\":\"navigate\",\"Connection\":\"keep-alive\",\"Host\":\"ips.sbihi.soar.ma\",\"Sec-Fetch-Dest\":\"document\",\"Accept-Encoding\":\"gzip, deflate, br, zstd\",\"Cookie\":\"PHPSESSID=asnf683g4q7m7ojqmba97rbd14; security=low; rl_session=RudderEncrypt%3AU2FsdGVkX1%2FI6hP0TtA3p8avEdm9MOlp96EPEYf0sHMY8dDADKLUISi6ukULWK2c1x0wKydCmVn9Wp94jO9DcRKNU2eN%2FoQGqwMeGn5Xj3q%2FVjLD5km0tZsLGzQQrwCSaLaGY8uTnuHLXI6yF0jK0w%3D%3D\",\"Accept-Language\":\"fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7,ar;q=0.6,pl;q=0.5,es;q=0.4,zh-CN;q=0.3,zh;q=0.2\"}},\"response\":{\"body\":\"<html>\\r\\n<head><title>403 Forbidden</title></head>\\r\\n<body>\\r\\n<center><h1>403 Forbidden</h1></center>\\r\\n<hr><center>nginx/1.22.1</center>\\r\\n</body>\\r\\n</html>\\r\\n<!-- a padding to disable MSIE and Chrome friendly error page -->\\r\\n<!-- a padding to disable MSIE and Chrome friendly error page -->\\r\\n<!-- a padding to disable MSIE and Chrome friendly error page -->\\r\\n<!-- a padding to disable MSIE and Chrome friendly error page -->\\r\\n<!-- a padding to disable MSIE and Chrome friendly error page -->\\r\\n<!-- a padding to disable MSIE and Chrome friendly error page -->\\r\\n\",\"http_code\":403,\"headers\":{\"Server\":\"nginx/1.22.1\",\"Date\":\"Mon, 11 Aug 2025 14:18:34 GMT\",\"Content-Length\":\"555\",\"Content-Type\":\"text/html\",\"Connection\":\"keep-alive\"}},\"producer\":{\"modsecurity\":\"ModSecurity v3.0.8 (Linux)\",\"connector\":\"ModSecurity-nginx v1.0.3\",\"secrules_engine\":\"Enabled\",\"components\":[]},\"messages\":[{\"message\":\"XSS Attack Detected and Blocked\",\"details\":{\"match\":\"detected XSS using libinjection.\",\"reference\":\"v33,29t:utf8toUnicode,t:urlDecodeUni,t:htmlEntityDecode,t:jsDecode,t:cssDecode\",\"ruleId\":\"1001\",\"file\":\"/etc/modsecurity.d/modsecurity.conf\",\"lineNumber\":\"277\",\"data\":\"Matched Data: <script>alert('XSS')</script> found within ARGS:name\",\"severity\":\"2\",\"ver\":\"\",\"rev\":\"\",\"tags\":[\"application-multi\",\"language-multi\",\"platform-multi\",\"attack-xss\",\"OWASP_CRS\",\"capec/1000/152/242\"],\"maturity\":\"0\",\"accuracy\":\"0\"}}]}}",
+    "decoder": {
+        "name": "modsecurity"
+    },
+    "data": {
+        "srcip": "192.168.15.1",
+        "srcport": "43017",
+        "dstip": "172.20.0.6",
+        "dstport": "443",
+        "status": "403",
+        "transaction": {
+            "client_ip": "192.168.15.1",
+            "time_stamp": "Mon Aug 11 14:18:34 2025",
+            "server_id": "a533dbe993c1ca76269ae833439957e44b3cbdc8",
+            "client_port": "43017",
+            "host_ip": "172.20.0.6",
+            "host_port": "443",
+            "unique_id": "175492191499.856606",
+            "request": {
+                "method": "GET",
+                "http_version": "1.100000",
+                "uri": "/vulnerabilities/xss_r/?name=%3Cscript%3Ealert%28%27XSS%27%29%3C%2Fscript%3E",
+                "headers": {
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0",
+                    "Sec-Fetch-Site": "same-origin",
+                    "sec-ch-ua-platform": "\"Windows\"",
+                    "Referer": "https://ips.sbihi.soar.ma/vulnerabilities/xss_r/",
+                    "Upgrade-Insecure-Requests": "1",
+                    "sec-ch-ua-mobile": "?0",
+                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+                    "Cache-Control": "max-age=0",
+                    "sec-ch-ua": "\"Opera\";v=\"120\", \"Not-A.Brand\";v=\"8\", \"Chromium\";v=\"135\"",
+                    "Sec-Fetch-User": "?1",
+                    "Sec-Fetch-Mode": "navigate",
+                    "Connection": "keep-alive",
+                    "Host": "ips.sbihi.soar.ma",
+                    "Sec-Fetch-Dest": "document",
+                    "Accept-Encoding": "gzip, deflate, br, zstd",
+                    "Cookie": "PHPSESSID=asnf683g4q7m7ojqmba97rbd14; security=low; rl_session=RudderEncrypt%3AU2FsdGVkX1%2FI6hP0TtA3p8avEdm9MOlp96EPEYf0sHMY8dDADKLUISi6ukULWK2c1x0wKydCmVn9Wp94jO9DcRKNU2eN%2FoQGqwMeGn5Xj3q%2FVjLD5km0tZsLGzQQrwCSaLaGY8uTnuHLXI6yF0jK0w%3D%3D",
+                    "Accept-Language": "fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7,ar;q=0.6,pl;q=0.5,es;q=0.4,zh-CN;q=0.3,zh;q=0.2"
+                }
+            },
+            "response": {
+                "body": "<html>\r\n<head><title>403 Forbidden</title></head>\r\n<body>\r\n<center><h1>403 Forbidden</h1></center>\r\n<hr><center>nginx/1.22.1</center>\r\n</body>\r\n</html>\r\n<!-- a padding to disable MSIE and Chrome friendly error page -->\r\n<!-- a padding to disable MSIE and Chrome friendly error page -->\r\n<!-- a padding to disable MSIE and Chrome friendly error page -->\r\n<!-- a padding to disable MSIE and Chrome friendly error page -->\r\n<!-- a padding to disable MSIE and Chrome friendly error page -->\r\n<!-- a padding to disable MSIE and Chrome friendly error page -->\r\n",
+                "http_code": "403",
+                "headers": {
+                    "Server": "nginx/1.22.1",
+                    "Date": "Mon, 11 Aug 2025 14:18:34 GMT",
+                    "Content-Length": "555",
+                    "Content-Type": "text/html",
+                    "Connection": "keep-alive"
+                }
+            },
+            "producer": {
+                "modsecurity": "ModSecurity v3.0.8 (Linux)",
+                "connector": "ModSecurity-nginx v1.0.3",
+                "secrules_engine": "Enabled",
+                "components": []
+            },
+            "messages": [
+                {
+                    "message": "XSS Attack Detected and Blocked",
+                    "details": {
+                        "match": "detected XSS using libinjection.",
+                        "reference": "v33,29t:utf8toUnicode,t:urlDecodeUni,t:htmlEntityDecode,t:jsDecode,t:cssDecode",
+                        "ruleId": "1001",
+                        "file": "/etc/modsecurity.d/modsecurity.conf",
+                        "lineNumber": "277",
+                        "data": "Matched Data: <script>alert('XSS')</script> found within ARGS:name",
+                        "severity": "2",
+                        "ver": "",
+                        "rev": "",
+                        "tags": [
+                            "application-multi",
+                            "language-multi",
+                            "platform-multi",
+                            "attack-xss",
+                            "OWASP_CRS",
+                            "capec/1000/152/242"
+                        ],
+                        "maturity": "0",
+                        "accuracy": "0"
+                    }
+                }
+            ]
+        },
+        "method": "GET",
+        "capec_pattern": "1000/152/242"
+    },
+    "location": "/var/log/apache2/modsec_audit.log"
+}
