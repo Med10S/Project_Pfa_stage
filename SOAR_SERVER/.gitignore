@@ -1,0 +1,46 @@
+# Ignore folders used as docker bind by Cassandra container
+/Thehive_code/testing/cassandra/data/*
+/Thehive_code/testing/cassandra/logs/*
+
+mailu/docker-compose.yml.bak
+misp-docker/docker-compose.yml.bak
+n8n/docker-compose.yml.bak
+nginx/docker-compose.yml.bak
+wazuh-docker/single-node/docker-compose.yml.bak
+
+# Ignore folders used as docker bind by Cortex container
+/Thehive_code/testing/cortex/logs/*
+/Thehive_code/testing/cortex/neurons/*
+
+# Ignore folders used as docker bind by ElasticSearch container
+/Thehive_code/testing/elasticsearch/data/*
+/Thehive_code/testing/elasticsearch/logs/*
+
+# Ignore folders used as docker bind by TheHive container
+/Thehive_code/testing/thehive/data/files/*
+/Thehive_code/testing/thehive/logs/*
+
+# Ignore custom configuration files for TheHive
+/Thehive_code/testing/thehive/config/index.conf
+/Thehive_code/testing/thehive/config/secret.conf
+
+# Ignore custom configuration files for Cortex
+/Thehive_code/testing/cortex/config/index.conf
+/Thehive_code/testing/cortex/config/secret.conf
+
+# Keep track of .gitkeep files to guarantee folder permissions are correct
+!/**/.gitkeep
+
+# Ignore .env file (users should copy dot.env.template to .env and complete it before running docker compose commands)
+# Ignore .DS_Store files
+/**/.DS_Store
+# Ignore server keys/certs
+/**/server.key
+/**/server.crt
+/**/ca.pem
+
+logs.json
+
+/Thehive_code/testing/cassandra/logs/debug.log
+/Thehive_code/testing/cassandra/logs
+/misp-docker/logs

@@ -1,0 +1,216 @@
+
+<!-- 
+  Enhanced ModSecurity JSON Decoder for Wazuh
+  Place this file in: /var/ossec/etc/decoders/modsecurity_decoder.xml
+  
+  This decoder handles ModSecurity JSON logs with proper message extraction
+-->
+
+
+<!-- Root decoder for ModSecurity logs -->
+<decoder name="modsecurity">
+  <prematch>^{"transaction":</prematch>
+</decoder>
+
+<!-- Main JSON decoder for ModSecurity logs -->
+<decoder name="modsecurity-json">
+  <parent>modsecurity</parent>
+  <plugin_decoder>JSON_Decoder</plugin_decoder>
+</decoder>
+
+<!-- Extract basic client information -->
+<decoder name="modsecurity-client-info">
+  <parent>modsecurity</parent>
+  <regex offset="after_parent">"client_ip":"(\S+)"</regex>
+  <order>srcip</order>
+</decoder>
+
+<!-- Extract timestamp -->
+<decoder name="modsecurity-timestamp">
+  <parent>modsecurity</parent>
+  <regex offset="after_parent">"time_stamp":"([^"]+)"</regex>
+  <order>timestamp</order>
+</decoder>
+
+<!-- Extract server information -->
+<decoder name="modsecurity-server-info">
+  <parent>modsecurity</parent>
+  <regex offset="after_parent">"server_id":"([^"]+)"</regex>
+  <order>server_id</order>
+</decoder>
+
+<!-- Extract ports -->
+<decoder name="modsecurity-ports">
+  <parent>modsecurity</parent>
+  <regex offset="after_parent">"client_port":(\d+)</regex>
+  <order>srcport</order>
+</decoder>
+
+<!-- Extract host IP -->
+<decoder name="modsecurity-host-ip">
+  <parent>modsecurity</parent>
+  <regex offset="after_parent">"host_ip":"(\S+)"</regex>
+  <order>dstip</order>
+</decoder>
+
+<!-- Extract host port -->
+<decoder name="modsecurity-host-port">
+  <parent>modsecurity</parent>
+  <regex offset="after_parent">"host_port":(\d+)</regex>
+  <order>dstport</order>
+</decoder>
+
+<!-- Extract unique ID -->
+<decoder name="modsecurity-unique-id">
+  <parent>modsecurity</parent>
+  <regex offset="after_parent">"unique_id":"([^"]+)"</regex>
+  <order>transaction_id</order>
+</decoder>
+
+<!-- Extract HTTP method -->
+<decoder name="modsecurity-http-method">
+  <parent>modsecurity</parent>
+  <regex offset="after_parent">"method":"(\w+)"</regex>
+  <order>method</order>
+</decoder>
+
+<!-- Extract HTTP version -->
+<decoder name="modsecurity-http-version">
+  <parent>modsecurity</parent>
+  <regex offset="after_parent">"http_version":([\d\.]+)</regex>
+  <order>http_version</order>
+</decoder>
+
+<!-- Extract URI -->
+<decoder name="modsecurity-uri">
+  <parent>modsecurity</parent>
+  <regex offset="after_parent">"uri":"([^"]+)"</regex>
+  <order>url</order>
+</decoder>
+
+<!-- Extract User-Agent from headers -->
+<decoder name="modsecurity-user-agent">
+  <parent>modsecurity</parent>
+  <regex offset="after_parent">"User-Agent":"([^"]+)"</regex>
+  <order>user_agent</order>
+</decoder>
+
+<!-- Extract Referer from headers -->
+<decoder name="modsecurity-referer">
+  <parent>modsecurity</parent>
+  <regex offset="after_parent">"Referer":"([^"]+)"</regex>
+  <order>referer</order>
+</decoder>
+
+<!-- Extract Cookie information -->
+<decoder name="modsecurity-cookie">
+  <parent>modsecurity</parent>
+  <regex offset="after_parent">"Cookie":"([^"]+)"</regex>
+  <order>cookie</order>
+</decoder>
+
+<!-- Extract Accept header -->
+<decoder name="modsecurity-accept">
+  <parent>modsecurity</parent>
+  <regex offset="after_parent">"Accept":"([^"]+)"</regex>
+  <order>accept_header</order>
+</decoder>
+
+<!-- Extract response HTTP code -->
+<decoder name="modsecurity-response-code">
+  <parent>modsecurity</parent>
+  <regex offset="after_parent">"http_code":(\d+)</regex>
+  <order>status</order>
+</decoder>
+
+<!-- Extract ModSecurity version and engine info -->
+<decoder name="modsecurity-engine-info">
+  <parent>modsecurity</parent>
+  <regex offset="after_parent">"modsecurity":"([^"]+)","connector":"([^"]+)","secrules_engine":"(\w+)"</regex>
+  <order>modsec_version,connector_version,engine_status</order>
+</decoder>
+
+<!-- Primary decoder for attack message extraction -->
+<decoder name="modsecurity-attack-message">
+  <parent>modsecurity</parent>
+  <regex offset="after_parent">"message":"([^"]+)"</regex>
+  <order>attack_message</order>
+</decoder>
+
+<!-- Extract rule ID and severity -->
+<decoder name="modsecurity-rule-info">
+  <parent>modsecurity</parent>
+  <regex offset="after_parent">"ruleId":"(\d+)".*?"severity":"(\d+)"</regex>
+  <order>rule_id,severity_level</order>
+</decoder>
+
+<!-- Extract matched data details -->
+<decoder name="modsecurity-matched-data">
+  <parent>modsecurity</parent>
+  <regex offset="after_parent">"data":"Matched Data: ([^"]+)"</regex>
+  <order>matched_payload</order>
+</decoder>
+
+<!-- Extract attack details and reference -->
+<decoder name="modsecurity-attack-details">
+  <parent>modsecurity</parent>
+  <regex offset="after_parent">"match":"([^"]+)".*?"reference":"([^"]+)"</regex>
+  <order>attack_type,transformations</order>
+</decoder>
+
+<!-- Extract rule file and line number -->
+<decoder name="modsecurity-rule-location">
+  <parent>modsecurity</parent>
+  <regex offset="after_parent">"file":"([^"]+)","lineNumber":"(\d+)"</regex>
+  <order>rule_file,line_number</order>
+</decoder>
+
+
+<!-- XSS specific decoder -->
+<decoder name="modsecurity-xss-attack">
+  <parent>modsecurity</parent>
+  <regex offset="after_parent">"attack-xss"</regex>
+  <order>xss_detected</order>
+</decoder>
+
+<!-- SQL Injection specific decoder -->
+<decoder name="modsecurity-sqli-attack">
+  <parent>modsecurity</parent>
+  <regex offset="after_parent">"attack-sqli"</regex>
+  <order>sqli_detected</order>
+</decoder>
+
+<!-- Command Injection specific decoder -->
+<decoder name="modsecurity-command-injection">
+  <parent>modsecurity</parent>
+  <regex offset="after_parent">"attack-injection-php"|"attack-injection"</regex>
+  <order>command_injection_detected</order>
+</decoder>
+
+<!-- Path Traversal specific decoder -->
+<decoder name="modsecurity-path-traversal">
+  <parent>modsecurity</parent>
+  <regex offset="after_parent">"attack-path-traversal"</regex>
+  <order>path_traversal_detected</order>
+</decoder>
+
+<!-- Generic attack pattern decoder -->
+<decoder name="modsecurity-generic-attack">
+  <parent>modsecurity</parent>
+  <regex offset="after_parent">"attack-([^"]+)"</regex>
+  <order>generic_attack_type</order>
+</decoder>
+
+<!-- OWASP category decoder -->
+<decoder name="modsecurity-owasp-category">
+  <parent>modsecurity</parent>
+  <regex offset="after_parent">"OWASP_CRS"</regex>
+  <order>owasp_crs</order>
+</decoder>
+
+<!-- CAPEC attack pattern decoder -->
+<decoder name="modsecurity-capec-pattern">
+  <parent>modsecurity</parent>
+  <regex offset="after_parent">"capec/(\d+/\d+/\d+)"</regex>
+  <order>capec_pattern</order>
+</decoder>
