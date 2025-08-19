@@ -53,6 +53,7 @@ Cette architecture est conçue spécifiquement pour **une équipe de sécurité/
 
 
 **Configuration Suricata-Wazuh :**
+dans le Wazuh agent installer dans le serveur ou suricata est installer 
 ```yaml
 # /var/ossec/etc/ossec.conf
 <localfile>
@@ -64,54 +65,30 @@ Cette architecture est conçue spécifiquement pour **une équipe de sécurité/
 
 ## Détection Spécialisée par Type d'Attaque
 
-### 1. Brute Force Detection
+### 1. XSS Detection
 
 **Wazuh Rules Configuration :**
-```xml
-<rule id="100001" level="10">
-    <if_matched_sid>5710</if_matched_sid>
-    <same_source_ip />
-    <different_user />
-    <time_frame>300</time_frame>
-    <count>5</count>
-    <description>Multiple failed login attempts from same IP (Brute Force)</description>
-    <group>authentication_failures,brute_force</group>
-</rule>
 
-<rule id="100002" level="12">
-    <if_matched_sid>100001</if_matched_sid>
-    <same_source_ip />
-    <time_frame>600</time_frame>
-    <count>3</count>
-    <description>Persistent brute force attack detected</description>
-    <group>brute_force,attack</group>
-</rule>
+[Voir la configuration complète des règles Wazuh](../../../SOAR_SERVER/wazuh-docker\single-node\ManagerConfig\rules\0550-modsecurity_rules.xml)
+```xml
+ <rule id="200000" level="0">
+    <decoded_as>modsecurity</decoded_as>
+    <description>ModSecurity events grouped.</description>
+  </rule>
+
+  <!-- Critical XSS Attack Detection -->
+  <rule id="200001" level="12">
+    <if_sid>200000</if_sid>
+    <field name="transaction.messages">"attack-xss"</field>
+    <field name="transaction.response.http_code">403</field>
+    <description>ModSecurity: Critical XSS Attack Blocked - Source: $(transaction.client_ip) Target: $(transaction.request.uri)</description>
+    <group>attack,web_attack,xss,critical,blocked</group>
+    <options>no_email_alert</options>
+  </rule>
+  
+  ....
 ```
 
-**Intégrations :**
-- **Suricata** : Détection réseau des tentatives
-- **Elastic ML** : Modèles d'apprentissage pour patterns
-- **TheHive** : Création automatique de cas
-- **AbuseIPDB** : Vérification réputation IP via Cortex
-
-### 2. XSS Detection
-
-**Multi-layer Detection :**
-```xml
-<rule id="100010" level="7">
-    <decoded_as>web-accesslog</decoded_as>
-    <regex type="pcre2">(?i)(script|javascript|vbscript|onload|onerror)</regex>
-    <description>Possible XSS attack detected in web logs</description>
-    <group>web,attack,xss</group>
-</rule>
-
-<rule id="100011" level="10">
-    <if_matched_sid>100010</if_matched_sid>
-    <regex type="pcre2">(?i)&lt;script|javascript:|vbscript:|onload=|onerror=</regex>
-    <description>XSS attack detected - malicious script injection</description>
-    <group>web,attack,xss</group>
-</rule>
-```
 
 **Stack Integration :**
 - **Web Application Firewall** logs → Wazuh

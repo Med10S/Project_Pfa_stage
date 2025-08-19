@@ -1,0 +1,59 @@
+<!-- Modify it at your will. -->
+<!-- ModSecurity Enhanced Rules for Wazuh -->
+<!-- File: /var/ossec/etc/rules/0550-modsecurity_rules.xml -->
+
+<group name="modsecurity,web,attack">
+
+  <!-- Base ModSecurity rule -->
+  <rule id="200000" level="0">
+    <decoded_as>modsecurity</decoded_as>
+    <description>ModSecurity events grouped.</description>
+  </rule>
+
+  <!-- Critical XSS Attack Detection -->
+  <rule id="200001" level="12">
+    <if_sid>200000</if_sid>
+    <field name="transaction.messages">"attack-xss"</field>
+    <field name="transaction.response.http_code">403</field>
+    <description>ModSecurity: Critical XSS Attack Blocked - Source: $(transaction.client_ip) Target: $(transaction.request.uri)</description>
+    <group>attack,web_attack,xss,critical,blocked</group>
+    <options>no_email_alert</options>
+  </rule>
+
+  <!-- LibInjection XSS Detection -->
+  <rule id="200010" level="12">
+    <if_sid>200000</if_sid>
+    <field name="transaction.messages">libinjection</field>
+    <field name="transaction.messages">XSS</field>
+    <description>ModSecurity: LibInjection XSS Attack - $(transaction.client_ip) -> $(transaction.host_ip):$(transaction.host_port)</description>
+    <group>attack,web_attack,xss,libinjection,critical</group>
+    <options>no_email_alert</options>
+  </rule>
+
+  <!-- OWASP CRS Rule Triggered -->
+  <rule id="200020" level="8">
+    <if_sid>200000</if_sid>
+    <field name="transaction.messages">OWASP_CRS</field>
+    <description>ModSecurity: OWASP CRS Security Rule - $(transaction.client_ip)</description>
+    <group>owasp,web_attack,crs</group>
+  </rule>
+
+  <!-- Blocked Requests (403) with Attack -->
+  <rule id="200030" level="9">
+    <if_sid>200000</if_sid>
+    <field name="transaction.response.http_code">403</field>
+    <field name="transaction.messages">Attack</field>
+    <description>ModSecurity: Attack Blocked (403) - Method: $(transaction.request.method) URI: $(transaction.request.uri)</description>
+    <group>access_denied,blocked,web_attack</group>
+  </rule>
+
+  <!-- Script Tag Detection in URI -->
+  <rule id="200040" level="11">
+    <if_sid>200000</if_sid>
+    <field name="transaction.request.uri">script</field>
+    <field name="transaction.request.uri">alert</field>
+    <description>ModSecurity: Malicious Script in URI - $(transaction.request.uri)</description>
+    <group>attack,web_attack,xss,uri_attack</group>
+  </rule>
+
+</group>

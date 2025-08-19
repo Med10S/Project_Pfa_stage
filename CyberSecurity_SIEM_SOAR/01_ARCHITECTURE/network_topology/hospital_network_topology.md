@@ -128,6 +128,3 @@ flowchart TB
     classDef critical fill:#ffebee,stroke:#c62828,stroke-width:2px,color:#000000
     classDef network fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px,color:#000000
     classDef soc fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000000
-
-```
-
