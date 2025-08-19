@@ -11,8 +11,6 @@
 - [Vue d'Ensemble](#-vue-densemble)
 - [Architecture de Détection](#-architecture-de-détection)
 - [Composants](#-composants)
-- [Corrélation d'Événements](#-corrélation-dévénements)
-- [Performance et Tuning](#-performance-et-tuning)
 
 ---
 
@@ -90,19 +88,30 @@ graph TD
 - **File Extraction** : Malware, PCAP capture
 
 #### Configuration Clé
+[Visualisez le code](../../Suricta/suricata.yaml)
 ```yaml
-# Mode d'opération
-runmode: workers
-# Interface monitoring  
-af-packet:
-  - interface: eth0
-    cluster-id: 99
-    cluster-type: cluster_flow
-# Règles actives
-default-rule-path: /var/lib/suricata/rules
-rule-files:
-  - suricata.rules
-  - emerging-threats.rules
+%YAML 1.1
+---
+
+vars:
+  address-groups:
+    HOME_NET: "[192.168.15.0/24]"
+    EXTERNAL_NET: "!$HOME_NET"
+    HTTP_SERVERS: "$HOME_NET"
+    SMTP_SERVERS: "$HOME_NET"
+    SQL_SERVERS: "$HOME_NET"
+    DNS_SERVERS: "$HOME_NET"
+    TELNET_SERVERS: "$HOME_NET"
+    AIM_SERVERS: "$EXTERNAL_NET"
+
+  port-groups:
+    HTTP_PORTS: "80"
+    SHELLCODE_PORTS: "!80"
+    ORACLE_PORTS: 1521
+    SSH_PORTS: 22
+
+runmode: autofp
+...
 ```
 
 #### Intégration SOAR
@@ -134,28 +143,31 @@ rule-files:
 #### Configuration Manager
 ```xml
 <ossec_config>
-  <global>
-    <jsonout_output>yes</jsonout_output>
-    <logall>no</logall>
-    <logall_json>no</logall_json>
-  </global>
-  
-  <alerts>
-    <log_alert_level>3</log_alert_level>
-  </alerts>
-  
-  <integration>
-    <name>webhook</name>
-    <url>http://n8n:5678/webhook/wazuh</url>
-    <alert_format>json</alert_format>
-  </integration>
+  <!-- Other config -->
+ <integration>
+  <name>custom-dns-integration</name>
+  <hook_url>http://sbihi.soar.ma:5678/webhook/wazuh-sysmon</hook_url>
+  <level>3</level>
+  <group>sysmon_event_22</group>
+  <alert_format>json</alert_format>
+</integration>
+
+
+<integration>
+ <name>custom-ssh-webhook</name>
+  <hook_url>http://sbihi.soar.ma:5678/webhook/wazuh-ssh</hook_url>
+  <level>3</level>
+  <alert_format>json</alert_format>
+  <rule_id>40111,60122,5758,2502,5710,5760,5763,5503</rule_id>
+</integration>
+    <!-- Other config -->
+
 </ossec_config>
 ```
 
 #### Custom Decoders
 - **ModSecurity Decoder** : Parse WAF logs
 - **Suricata Decoder** : IDS alert enrichment
-- **Custom Apps** : Business logic events
 
 ---
 
@@ -190,149 +202,39 @@ rule-files:
 ```
 
 #### Configuration Principale
-```apache
-SecRuleEngine On
-SecRequestBodyAccess On
-SecResponseBodyAccess On
 
-# OWASP CRS
-Include /etc/modsecurity.d/owasp-crs/crs-setup.conf
-Include /etc/modsecurity.d/owasp-crs/rules/*.conf
+```conf
+#----------- Other config
+SecRule REQUEST_HEADERS:X-Forwarded-For "@rx ." \
+    "id:900100,phase:1,pass,log,msg:'X-Forwarded-For header detected: %{REQUEST_HEADERS.X-Forwarded-For}'"
 
-# Custom Rules
-Include /etc/modsecurity.d/custom-rules/*.conf
-Include /etc/modsecurity.d/blocked_ips.conf
+# Log when we detect real IP header for debugging  
+SecRule REQUEST_HEADERS:X-Real-IP "@rx ." \
+    "id:900101,phase:1,pass,log,msg:'X-Real-IP header detected: %{REQUEST_HEADERS.X-Real-IP}'"
+
+# Log Docker bridge traffic detection
+SecRule REMOTE_ADDR "@ipMatch 172.20.0.0/16" \
+    "id:900102,phase:1,pass,log,msg:'Docker bridge traffic detected from: %{REMOTE_ADDR}'"
+
+# Log when real attacker IP is detected (from WiFi network)
+SecRule REMOTE_ADDR "@rx ^192\.168\.1\." \
+    "id:900103,phase:1,pass,log,msg:'Real attacker IP detected: %{REMOTE_ADDR}'"
+# Enable XML request body parser.
+# Initiate XML Processor in case of xml content-type
+#
+SecRule REQUEST_HEADERS:Content-Type "^(?:application(?:/soap\+|/)|text/)xml" \
+     "id:'200000',phase:1,t:none,t:lowercase,pass,nolog,ctl:requestBodyProcessor=XML"
+
+# Enable JSON request body parser.
+# Initiate JSON Processor in case of JSON content-type; change accordingly
+# if your application does not use 'application/json'
+#
+SecRule REQUEST_HEADERS:Content-Type "^application/json" \
+     "id:'200001',phase:1,t:none,t:lowercase,pass,nolog,ctl:requestBodyProcessor=JSON"
+
+#----------- Other config
 ```
 
-## 🔗 Corrélation d'Événements
-
-### Règles de Corrélation Wazuh
-
-#### Détection d'Attaques Multi-Vecteurs
-```xml
-<rule id="100001" level="12">
-  <if_matched_sid>31100,31101,31102</if_matched_sid>
-  <same_source_ip />
-  <description>Multiple attack vectors detected from same IP</description>
-  <group>correlation,attack,</group>
-</rule>
-```
-
-#### EternalBlue Attack Chain
-```xml
-<rule id="100002" level="15">
-  <if_matched_group>suricata</if_matched_group>
-  <field name="alert.signature">ET EXPLOIT.*SMB</field>
-  <description>EternalBlue exploit attempt detected</description>
-  <group>exploit,eternalblue,</group>
-</rule>
-```
-
-#### XSS Attack Detection
-```xml
-<rule id="100003" level="10">
-  <if_matched_group>modsecurity</if_matched_group>
-  <field name="transaction.messages.message">XSS Attack</field>
-  <description>Cross-Site Scripting attack blocked</description>
-  <group>web,xss,blocked,</group>
-</rule>
-```
-
-### Enrichissement d'Alertes
-
-#### GeoIP Integration
-```xml
-<decoder name="geoip-location">
-  <parent>json</parent>
-  <plugin_decoder>geoip</plugin_decoder>
-</decoder>
-```
-
-#### Threat Intelligence
-- **MISP Integration** : IOC matching
-- **AlienVault OTX** : IP reputation
-- **Custom IOCs** : Internal blacklists
-
-## 📊 Performance et Tuning
-
-### Métriques de Performance
-
-#### Suricata
-- **Throughput** : 1 Gbps sustained
-- **Packet Loss** : < 0.1%
-- **Rule Updates** : Daily via suricata-update
-- **Memory Usage** : < 2GB
-
-#### Wazuh
-- **Events/sec** : 10,000 EPS
-- **Agent Count** : 50 agents max
-- **Index Size** : 10GB/jour
-- **Query Time** : < 500ms
-
-#### ModSecurity  
-- **Request Latency** : +50ms avg
-- **False Positives** : < 1%
-- **Block Rate** : 2% of traffic
-- **Log Volume** : 1GB/jour
-
-### Optimisations
-
-#### Suricata Tuning
-```yaml
-# Performance optimizations
-detect:
-  profile: high
-  custom-values:
-    toclient-groups: 3
-    toserver-groups: 25
-    
-# Threading
-threading:
-  set-cpu-affinity: yes
-  cpu-affinity:
-    - management-cpu-set: 
-        cpu: [ 0 ]
-    - receive-cpu-set:
-        cpu: [ 1 ]
-    - worker-cpu-set:
-        cpu: [ 2, 3 ]
-```
-
-#### Wazuh Index Optimization
-```json
-{
-  "index_patterns": ["wazuh-alerts-*"],
-  "template": {
-    "settings": {
-      "number_of_shards": 1,
-      "number_of_replicas": 0,
-      "refresh_interval": "30s"
-    }
-  }
-}
-```
-
-## 🔧 Maintenance et Monitoring
-
-### Health Checks
-```bash
-# Suricata status
-sudo suricata-sc -c stats
-
-# Wazuh agents  
-/var/ossec/bin/agent_control -l
-
-# ModSecurity logs
-tail -f /var/log/modsec_audit.log
-```
-
-### Alerting sur Infrastructure
-- **Service Down** : Immediate notification
-- **High CPU** : > 80% for 5min
-- **Disk Full** : > 90% usage
-- **Network Issues** : Packet loss detection
-
----
 
 ## 📚 Documentation Détaillée
 
@@ -343,22 +245,5 @@ tail -f /var/log/modsec_audit.log
 
 ---
 
-## 🔗 Intégrations
 
-### Flux vers SOAR Stack
-```
-Detection Layer → Wazuh → n8n → TheHive → Cortex → Response
-```
-
-### APIs Disponibles
-- **Wazuh API** : https://192.168.15.3:55000
-- **Suricata Socket** : /var/run/suricata/suricata-command.socket  
-- **ModSecurity API** : Custom endpoint
-
-### Webhooks
-- **n8n Trigger** : http://192.168.15.3:5678/webhook/*
-- **TheHive Integration** : Auto case creation
-- **External SIEMs** : Syslog forwarding
-
----
 **Mise à jour** : Août 2025 - Med10S

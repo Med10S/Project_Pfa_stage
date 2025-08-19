@@ -313,148 +313,19 @@ graph TB
 ### Logique de Traitement des Alertes
 
 #### Node "Process Alert" - Extraction et Formatage
-```javascript
-// Code n8n réel du workflow DNS
-const alertJson = $input.item.json;
-const alertData = alertJson.body || alertJson;
-const rule = alertData.rule || {};
-const data = alertData.data || {};
-const win = data.win || {};
-const eventdata = win.eventdata || {};
 
-// Extraction domaine DNS
-const dnsQuery = {};
-if (eventdata.queryName) {
-  dnsQuery.domain = eventdata.queryName;
-}
+[Visualisez le code](../../04_ATTACK_SCENARIOS/malicious_websites/Process_Alert.js)
 
-if (eventdata.queryResults) {
-  dnsQuery.result = eventdata.queryResults;
-  
-  // Extraction IPs depuis résultats
-  const ipMatches = eventdata.queryResults.match(/::ffff:(\d+\.\d+\.\d+\.\d+)/g) || [];
-  const resolvedIPs = ipMatches.map(ip => ip.replace('::ffff:', ''));
-  
-  if (resolvedIPs.length > 0) {
-    dnsQuery.ips = resolvedIPs;
-  }
-}
 
-// Création de l'observable principal
-const observable = dnsQuery.domain ? {
-  dataType: 'domain',
-  data: dnsQuery.domain,
-  message: description,
-  context: {
-    resolvedIPs: dnsQuery.ips || [],
-    processInfo: {
-      path: eventdata.image,
-      pid: eventdata.processId,
-      user: eventdata.user
-    }
-  }
-} : null;
-```
 
 ### Moteur d'Analyse des Menaces
 
 #### Fonction d'Évaluation Multi-Sources
-```javascript
-// Code d'analyse des rapports Cortex/MISP
-function analyzeReports(reports) {
-  let highestThreatLevel = "info";
-  let hasEvents = false;
-  const findings = [];
-  
-  // Traitement des rapports MISP
-  if (reports.analyzerReport?.full?.results) {
-    reports.analyzerReport.full.results.forEach(resultItem => {
-      if (resultItem?.result && Array.isArray(resultItem.result)) {
-        resultItem.result.forEach(item => {
-          hasEvents = true;
-          
-          const finding = {
-            analyzer: "MISP",
-            source: resultItem.name,
-            event_id: item.id,
-            info: item.info,
-            threat_level_id: item.threat_level_id,
-            organization: item.Orgc?.name,
-            tags: item.Tag?.map(tag => tag.name).join(', ')
-          };
-          
-          findings.push(finding);
-          
-          // Mise à jour niveau de menace
-          if (item.threat_level_id) {
-            updateThreatLevel(item.threat_level_id.toString());
-          }
-        });
-      }
-    });
-  }
-  
-  // Traitement taxonomies Cortex
-  if (reports.localReport) {
-    Object.entries(reports.localReport).forEach(([analyzerName, report]) => {
-      if (report?.taxonomies) {
-        report.taxonomies.forEach(taxonomy => {
-          findings.push({
-            analyzer: analyzerName,
-            type: taxonomy.predicate,
-            value: taxonomy.value,
-            level: taxonomy.level
-          });
-          
-          if (taxonomy.value && !taxonomy.value.includes("0 events")) {
-            hasEvents = true;
-            updateThreatLevel(taxonomy.level);
-          }
-        });
-      }
-    });
-  }
-  
-  return { threatLevel: highestThreatLevel, hasEvents, findings };
-}
-```
 
-### Prise de Décision Automatisée
+[Visualisez le code](../../04_ATTACK_SCENARIOS/malicious_websites/Process%20Observable%20Results.js)
 
-#### Logique de Classification
-```javascript
-// Décision automatique Case vs Ignore
-const analysis = analyzeReports({
-  localReport: localReport,
-  analyzerReport: analyzerReport
-});
 
-const createCase = analysis.hasEvents || analysis.threatLevel !== "info";
 
-// Mise à jour de l'alerte
-const alertUpdate = {
-  id: alertId,
-  tags: [...observable.tags, `threatLevel:${analysis.threatLevel}`],
-  status: createCase ? "New" : "Ignored",
-  follow: createCase
-};
-
-if (createCase) {
-  // Création du case TheHive
-  createCaseFromAlert(alertId);
-  
-  // Notification email équipe SOC
-  sendSecurityEmail({
-    subject: `DNS Threat Detected: ${dnsQuery.domain}`,
-    body: generateThreatReport(analysis.findings)
-  });
-} else {
-  // Marquage comme faux positif
-  updateAlertStatus(alertId, "Ignored");
-}
-```
-
----
 
 ## 🟠 Flux XSS et Blocage IP
 
@@ -518,98 +389,8 @@ graph LR
 ### Code de Blocage IP OPNsense
 
 #### Implémentation API Native Node.js
-```javascript
-// Code n8n réel - OPNsense IP Blocker
-const IP_TO_BLOCK = $input.first().json.body.raw_log.transaction.client_ip;
-const OPNSENSE_URL = "http://192.168.181.1";
-const API_KEY = "ud8fjSvMwTgX9P7fEL4eWUfbOk+3/tiBpmtMh+dQU4OkH4YiJ/iE3aQBpWPXVHpDzyMel5v3Lql98j7e";
-const API_SECRET = "EzfhmRdb8Il60Ab+KQHZ5G1/zbRIU4Kgg5l6HcfQnXXOmHbH2iloqDBjih4EOmfmX1dnf8ifdNndbAND";
-const ALIAS_ID = "2e9d5f53-be6b-4735-9f32-ffc60baea3f1";
 
-// Fonction API générique
-async function makeApiCall(endpoint, method = 'GET', body = null) {
-    return new Promise((resolve, reject) => {
-        const fullUrl = `${OPNSENSE_URL}${endpoint}`;
-        const urlParts = new URL(fullUrl);
-        const auth = 'Basic ' + Buffer.from(API_KEY + ':' + API_SECRET).toString('base64');
-
-        const headers = {
-            'Authorization': auth,
-            'Accept': 'application/json'
-        };
-        
-        if (method !== 'GET' && body) {
-            headers['Content-Type'] = 'application/json';
-        }
-
-        const options = {
-            hostname: urlParts.hostname,
-            port: urlParts.port || 80,
-            path: urlParts.pathname + urlParts.search,
-            method: method,
-            headers: headers,
-            timeout: 30000,
-            rejectUnauthorized: false
-        };
-
-        const req = http.request(options, (res) => {
-            let responseData = '';
-            res.on('data', (chunk) => { responseData += chunk; });
-            res.on('end', () => {
-                if (res.statusCode >= 200 && res.statusCode < 300) {
-                    resolve(JSON.parse(responseData));
-                } else {
-                    reject(new Error(`API call failed: ${res.statusCode}`));
-                }
-            });
-        });
-
-        req.on('error', reject);
-        if (body) req.write(JSON.stringify(body));
-        req.end();
-    });
-}
-```
-
-#### Processus de Blocage Complet
-```javascript
-// 1. Récupération de l'alias actuel
-const currentData = await makeApiCall(`/api/firewall/alias/get_item/${ALIAS_ID}`);
-
-// 2. Extraction des IPs existantes
-let currentIPs = [];
-if (currentData.alias && currentData.alias.content) {
-    for (const [key, value] of Object.entries(currentData.alias.content)) {
-        if (value?.selected === 1 && key.includes('.')) {
-            currentIPs.push(key);
-        }
-    }
-}
-
-// 3. Ajout de la nouvelle IP
-const ipAlreadyExists = currentIPs.includes(IP_TO_BLOCK);
-if (!ipAlreadyExists) {
-    currentIPs.push(IP_TO_BLOCK);
-}
-
-// 4. Mise à jour de l'alias
-const payload = {
-    "alias": {
-        "content": currentIPs.join("\n"),
-        "description": "automatique block by n8n",
-        "enabled": "1",
-        "name": "Black_list",
-        "type": "host"
-    }
-};
-
-await makeApiCall(`/api/firewall/alias/set_item/${ALIAS_ID}`, 'POST', payload);
-
-// 5. Application des règles firewall
-await makeApiCall("/api/firewall/alias/reconfigure", 'POST');
-```
-
----
+[Visualisez le code](../../../scripts/opnSense/n8n_opnsense_final.js)
 
 ## 🔗 Intégrations API
 
@@ -623,131 +404,9 @@ await makeApiCall("/api/firewall/alias/reconfigure", 'POST');
 | **OPNsense** | `/api/firewall/alias/*` | GET/POST | Basic Auth | En temps réel |
 | **Telegram** | `/bot{token}/sendMessage` | POST | Bot Token | Critique seulement |
 
-### Authentifications Configurées
 
-#### TheHive API
-```javascript
-const theHiveAuth = {
-  url: "http://192.168.15.2:9000",
-  headers: {
-    "Authorization": "Bearer thehive_api_key_here",
-    "Content-Type": "application/json"
-  }
-};
-```
 
-#### OPNsense API
-```javascript
-const opnsenseAuth = {
-  url: "http://192.168.181.1",
-  auth: "Basic " + Buffer.from(API_KEY + ':' + API_SECRET).toString('base64'),
-  rejectUnauthorized: false
-};
-```
 
-### Gestion des Erreurs et Retry
-
-```javascript
-// Stratégie de retry n8n
-const retryStrategy = {
-  maxRetries: 3,
-  retryDelay: [2000, 5000, 10000], // 2s, 5s, 10s
-  retryOnHttpCodes: [429, 500, 502, 503, 504],
-  
-  handleError: function(error, attempt) {
-    console.log(`API call failed (attempt ${attempt}): ${error.message}`);
-    
-    if (attempt >= this.maxRetries) {
-      // Fallback actions
-      logToFile(error);
-      sendAlternativeNotification();
-      return false; // Stop retrying
-    }
-    
-    return true; // Continue retrying
-  }
-};
-```
-
----
-
-## 📊 Métriques et Performance
-
-### Tableau de Bord en Temps Réel
-
-```json
-{
-  "realtime_metrics": {
-    "active_workflows": 3,
-    "total_executions_today": 1847,
-    "success_rate": "98.7%",
-    "average_execution_time": {
-      "eternalblue_workflow": "12.3s",
-      "dns_workflow": "8.7s", 
-      "xss_workflow": "4.2s"
-    },
-    "data_processed": {
-      "total_alerts": 1623,
-      "cases_created": 187,
-      "ips_blocked": 45,
-      "false_positives": 23
-    }
-  }
-}
-```
-
-### Optimisations Performance
-
-#### Cache et Optimisations
-```javascript
-// Cache des résultats Cortex/MISP
-const analysisCache = {
-  ttl: 3600, // 1 heure
-  
-  getCachedResult: function(observable) {
-    const key = `${observable.dataType}:${observable.data}`;
-    return cache.get(key);
-  },
-  
-  setCachedResult: function(observable, result) {
-    const key = `${observable.dataType}:${observable.data}`;
-    cache.set(key, result, this.ttl);
-  }
-};
-
-// Exécution parallèle des analyseurs
-await Promise.all([
-  executeCortexAnalyzer("VirusTotal", observable),
-  executeCortexAnalyzer("MISP", observable),
-  executeCortexAnalyzer("Shodan", observable)
-]);
-```
-
-### Monitoring des Flux
-
-```javascript
-// Métriques par workflow
-const workflowMetrics = {
-  trackExecution: function(workflowName, startTime, success, error = null) {
-    const duration = Date.now() - startTime;
-    
-    this.log({
-      workflow: workflowName,
-      timestamp: new Date().toISOString(),
-      duration_ms: duration,
-      success: success,
-      error: error
-    });
-    
-    // Alertes si performance dégradée
-    if (duration > 30000) { // > 30 secondes
-      this.sendPerformanceAlert(workflowName, duration);
-    }
-  }
-};
-```
-
----
 
 ## 🔗 Références Techniques
 

@@ -54,9 +54,9 @@ Cette plateforme implémente un **SOC (Security Operations Center)** de niveau h
 Cette documentation est organisée comme un cours progressif :
 
 ### [01 - ARCHITECTURE](./01_ARCHITECTURE/)
-- 🏗️ Diagrammes d'architecture
-- 🌐 Topologie réseau
-- 🔄 Flux de données
+- 🏗️ **[Diagrammes d'architecture](./01_ARCHITECTURE/diagrams/detailed_architecture.md)**
+- 🌐 **[Topologie réseau](./01_ARCHITECTURE/network_topology/hospital_network_topology.md)**
+- 🔄 **[Flux de données](./01_ARCHITECTURE/data_flows/README.md)**
 
 ### [02 - COUCHE DE DÉTECTION](./02_DETECTION_LAYER/)
 - 🔍 **[Suricata](./02_DETECTION_LAYER/suricata/)** - IDS/IPS Network

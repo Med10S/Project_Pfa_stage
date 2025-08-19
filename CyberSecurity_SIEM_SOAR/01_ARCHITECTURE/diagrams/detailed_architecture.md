@@ -69,7 +69,7 @@ dans le Wazuh agent installer dans le serveur ou suricata est installer
 
 **Wazuh Rules Configuration :**
 
-[Voir la configuration complète des règles Wazuh](../../../SOAR_SERVER/wazuh-docker\single-node\ManagerConfig\rules\0550-modsecurity_rules.xml)
+[Voir la configuration complète des règles Wazuh](../../../SOAR_SERVER/wazuh-docker/single-node/ManagerConfig/rules/0550-modsecurity_rules.xml)
 ```xml
  <rule id="200000" level="0">
     <decoded_as>modsecurity</decoded_as>
