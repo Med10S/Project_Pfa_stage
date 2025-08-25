@@ -1,1 +1,13 @@
 /TODO
+/rapport/*.log
+/rapport/*.lof
+/rapport/*.lot
+/rapport/*.toc
+/rapport/*.out
+/rapport/*.aux
+/rapport/*.synctex(busy)
+/rapport/*.synctex.gz
+*log
+
+
+

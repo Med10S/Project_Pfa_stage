@@ -1,0 +1,338 @@
+\chapter{Structure du Projet et Présentation des Composants}
+
+Ce chapitre présente l'organisation structurelle du projet et introduit chacun des composants majeurs de l'architecture SIEM/SOAR développée. Cette présentation suit la logique fonctionnelle de la solution, depuis les fondements architecturaux jusqu'aux tests de validation.
+
+\section{Chapitre 1 - Architecture Système}
+
+\subsection{Vue d'Ensemble Architecturale}
+
+Le premier chapitre établit les fondements conceptuels et techniques de la solution. Il présente une architecture en quatre couches interconnectées, chacune ayant une responsabilité spécifique dans la chaîne de traitement des événements de sécurité.
+
+\subsubsection{Couche de Données (Layer 0)}
+Cette couche constitue le socle de l'architecture, collectant les événements bruts provenant de l'ensemble de l'infrastructure hospitalière. Elle gère la normalisation et la persistance des données de sécurité, garantissant leur intégrité et leur disponibilité pour les traitements ultérieurs.
+
+\subsubsection{Couche de Détection (Layer 1)}
+Intégrant Suricata, Wazuh et ModSecurity, cette couche assure la surveillance multi-niveaux de l'infrastructure. Elle implémente des mécanismes de détection signature-based et behavioral-based, adaptés aux spécificités de l'environnement hospitalier.
+
+\subsubsection{Couche d'Analyse (Layer 2)}
+Composée de TheHive, Cortex et MISP, cette couche enrichit les alertes avec du contexte métier et de l'intelligence sur les menaces. Elle automatise l'analyse des artefacts et facilite la prise de décision des analystes SOC.
+
+\subsubsection{Couche d'Orchestration (Layer 3)}
+Pilotée par n8n, cette couche automatise les workflows de réponse aux incidents. Elle coordonne les actions entre les différents composants et assure l'exécution des playbooks de sécurité.
+
+\subsection{Topologie Réseau et Segmentation}
+
+La topologie réseau proposée reflète les meilleures pratiques de segmentation sécuritaire :
+
+\begin{itemize}
+    \item \textbf{Segment SOAR (192.168.15.0/24)} : Héberge les services de sécurité critiques
+    \item \textbf{Segment Administration (192.168.181.0/24)} : Accès de gestion et administration
+    \item \textbf{Segment Cible (192.168.183.0/24)} : Systèmes surveillés et protégés
+    \item \textbf{Réseaux Docker (172.20.0.0/16)} : Isolation des services containerisés
+\end{itemize}
+
+Cette segmentation permet un contrôle granulaire des flux de communication et limite la propagation latérale en cas de compromission.
+
+\subsection{Flux de Données et Corrélation}
+
+L'architecture implémente un pipeline de traitement des données optimisé pour la réactivité et la précision. Les flux de données suivent un modèle ETL (Extract, Transform, Load) adapté aux contraintes temps réel du monitoring sécuritaire.
+
+\section{Chapitre 2 - Couche de Détection}
+
+\subsection{Suricata - Détection Réseau Avancée}
+
+Suricata fonctionne en mode hybride IDS/IPS, analysant le trafic réseau en temps réel. Sa configuration intègre :
+
+\subsubsection{Règles de Détection}
+Plus de 30 000 règles ET Open Rules, complétées par des règles personnalisées adaptées à l'environnement hospitalier. Ces règles couvrent :
+\begin{itemize}
+    \item Les exploits ciblant les équipements médicaux
+    \item Les communications Command \& Control (C2)
+    \item Les tentatives d'exfiltration de données sensibles
+    \item Les anomalies comportementales réseau
+\end{itemize}
+
+\subsubsection{Moteurs d'Analyse}
+L'implémentation exploite plusieurs moteurs d'analyse parallèles :
+\begin{itemize}
+    \item \textbf{Moteur de signatures} : Détection basée sur les patterns connus
+    \item \textbf{Moteur de protocoles} : Analyse approfondie des protocoles applicatifs
+    \item \textbf{Moteur de files} : Extraction et analyse des fichiers transmis
+    \item \textbf{Moteur Lua} : Scripts personnalisés pour détections spécifiques
+\end{itemize}
+
+\subsection{Wazuh - SIEM Central}
+
+Wazuh constitue le cœur du système de corrélation, collectant et analysant les événements de l'ensemble de l'infrastructure.
+
+\subsubsection{Architecture Distribuée}
+L'architecture Wazuh déployée comprend :
+\begin{itemize}
+    \item \textbf{Wazuh Manager} : Corrélation et gestion centralisée
+    \item \textbf{Wazuh Indexer} : Stockage et indexation des événements (basé sur OpenSearch)
+    \item \textbf{Wazuh Dashboard} : Interface de visualisation et d'analyse
+    \item \textbf{Agents Wazuh} : Collecteurs déployés sur les endpoints
+\end{itemize}
+
+\subsubsection{Règles de Corrélation}
+Développement de règles spécialisées pour l'environnement hospitalier :
+\begin{itemize}
+    \item Détection des accès non autorisés aux dossiers patients
+    \item Monitoring des équipements médicaux critiques
+    \item Surveillance des communications réseau suspectes
+    \item Alertes de conformité HIPAA/RGPD
+\end{itemize}
+
+\subsection{ModSecurity - Protection Applicative}
+
+ModSecurity assure la protection des applications web contre les attaques de couche applicative.
+
+\subsubsection{Configuration WAF}
+Déploiement en mode reverse proxy avec :
+\begin{itemize}
+    \item \textbf{OWASP Core Rule Set (CRS)} : Protection contre le Top 10 OWASP
+    \item \textbf{Règles personnalisées} : Adaptées aux applications hospitalières
+    \item \textbf{Modes de fonctionnement} : Detection et Prevention configurables
+    \item \textbf{Logging avancé} : Capture détaillée des transactions HTTP/HTTPS
+\end{itemize}
+
+\section{Chapitre 3 - Stack SOAR}
+
+\subsection{TheHive - Gestion Centralisée des Incidents}
+
+TheHive centralise la gestion du cycle de vie des incidents de sécurité.
+
+\subsubsection{Modèle de Données}
+Structure hiérarchique organisée autour de :
+\begin{itemize}
+    \item \textbf{Alertes} : Événements de sécurité nécessitant une investigation
+    \item \textbf{Cases} : Incidents confirmés en cours de traitement
+    \item \textbf{Observables} : Artefacts techniques (IPs, hashes, domaines)
+    \item \textbf{Tasks} : Actions à mener pour résoudre l'incident
+\end{itemize}
+
+\subsubsection{Templates Hospitaliers}
+Développement de templates spécialisés :
+\begin{itemize}
+    \item \textbf{Incident de sécurité patient} : Gestion des brèches affectant les données de santé
+    \item \textbf{Compromission d'équipement médical} : Procédures d'isolement et de restauration
+    \item \textbf{Attaque ransomware} : Playbooks de réponse d'urgence
+    \item \textbf{Tentative d'exfiltration} : Investigation et containment
+\end{itemize}
+
+\subsection{Cortex - Automatisation de l'Analyse}
+
+Cortex automatise l'analyse des artefacts de sécurité via un système d'analyzers modulaires.
+
+\subsubsection{Analyzers Déployés}
+Configuration de plus de 100 analyzers couvrant :
+\begin{itemize}
+    \item \textbf{Reputation engines} : VirusTotal, AbuseIPDB, URLVoid
+    \item \textbf{Threat intelligence} : Intégration MISP, feeds commerciaux
+    \item \textbf{Sandbox analysis} : Analyse comportementale de malwares
+    \item \textbf{Geolocation} : MaxMind, Shodan pour la contextualisation géographique
+\end{itemize}
+
+\subsubsection{Analyzers Personnalisés}
+Développement d'analyzers spécialisés :
+\begin{itemize}
+    \item \textbf{Medical Device Checker} : Validation de conformité des équipements médicaux
+    \item \textbf{HIPAA Compliance Analyzer} : Vérification de conformité réglementaire
+    \item \textbf{Hospital Network Analyzer} : Analyse des communications intra-hospitalières
+\end{itemize}
+
+\subsection{MISP - Intelligence sur les Menaces}
+
+MISP fournit la plateforme de threat intelligence collaborative.
+
+\subsubsection{Feeds d'Intelligence}
+Intégration de sources diversifiées :
+\begin{itemize}
+    \item \textbf{Feeds publics} : CIRCL OSINT, URLhaus, Feodo Tracker
+    \item \textbf{Communautés sectorielles} : Partage d'IOCs entre établissements de santé
+    \item \textbf{Intelligence commerciale} : Feeds premium pour menaces avancées
+    \item \textbf{Intelligence interne} : IOCs générés par l'analyse d'incidents internes
+\end{itemize}
+
+\subsubsection{Objets MISP Personnalisés}
+Création d'objets spécialisés pour le domaine médical :
+\begin{itemize}
+    \item \textbf{Medical-device-object} : Représentation des équipements médicaux
+    \item \textbf{Hospital-network-object} : Modélisation des réseaux hospitaliers
+    \item \textbf{Patient-data-breach-object} : Standardisation des incidents patients
+\end{itemize}
+
+\subsection{n8n - Orchestration des Workflows}
+
+n8n automatise l'orchestration des réponses aux incidents via des workflows visuels.
+
+\subsubsection{Workflows Opérationnels}
+Implémentation de workflows couvrant :
+\begin{itemize}
+    \item \textbf{Traitement automatique des alertes} : Tri, enrichissement et escalade
+    \item \textbf{Réponse aux incidents critiques} : Actions d'urgence automatisées
+    \item \textbf{Reporting de conformité} : Génération automatique de rapports réglementaires
+    \item \textbf{Notification multi-canal} : Email, SMS, intégrations messagerie
+\end{itemize}
+
+\section{Chapitre 4 - Scénarios d'Attaque et Validation}
+
+\subsection{Méthodologie de Test}
+
+La validation de l'architecture s'appuie sur des tests d'intrusion contrôlés, reproduisant des scénarios d'attaque réalistes dans un environnement de laboratoire sécurisé.
+
+\subsubsection{Environnement de Test}
+Configuration d'un laboratoire comprenant :
+\begin{itemize}
+    \item \textbf{Segment attaquant} : Machine Kali Linux (192.168.183.100)
+    \item \textbf{Cibles variées} : Windows Server, stations de travail, applications web
+    \item \textbf{Infrastructure de détection} : Stack SOAR complète
+    \item \textbf{Monitoring} : Capture complète du trafic et des événements
+\end{itemize}
+
+\subsection{Scénario EternalBlue}
+
+\subsubsection{Description Technique}
+Exploitation de la vulnérabilité CVE-2017-0144 dans le service SMBv1 de Windows, permettant l'exécution de code à distance sans authentification.
+
+\subsubsection{Implémentation d'Attaque}
+Développement d'un exploit Metasploit personnalisé, décomposé en phases :
+\begin{enumerate}
+    \item \textbf{Reconnaissance} : Scan des ports SMB et identification des versions
+    \item \textbf{Exploitation} : Envoi du payload EternalBlue
+    \item \textbf{Post-exploitation} : Installation d'un backdoor DoublePulsar
+    \item \textbf{Persistance} : Création de comptes utilisateur et tâches planifiées
+\end{enumerate}
+
+\subsubsection{Détection et Réponse}
+La stack SOAR détecte l'attaque via :
+\begin{itemize}
+    \item \textbf{Suricata} : Signatures spécifiques aux patterns EternalBlue
+    \item \textbf{Wazuh} : Corrélation des événements Windows et analyse comportementale
+    \item \textbf{Réponse automatique} : Isolation réseau, capture forensique, notification
+\end{itemize}
+
+\subsection{Scénario XSS}
+
+\subsubsection{Attaques Cross-Site Scripting}
+Tests de plusieurs variantes d'attaques XSS :
+\begin{itemize}
+    \item \textbf{Reflected XSS} : Injection via paramètres URL
+    \item \textbf{Stored XSS} : Persistance en base de données
+    \item \textbf{DOM-based XSS} : Exploitation côté client
+    \item \textbf{Bypass techniques} : Contournement des protections WAF
+\end{itemize}
+
+\subsubsection{Protection ModSecurity}
+Configuration avancée incluant :
+\begin{itemize}
+    \item \textbf{OWASP CRS} : Règles de base contre XSS
+    \item \textbf{Règles personnalisées} : Adaptées aux applications hospitalières
+    \item \textbf{Machine learning} : Détection des payloads obfusqués
+    \item \textbf{Response actions} : Blocage automatique et logging détaillé
+\end{itemize}
+
+\subsection{Scénario Sites Malveillants}
+
+\subsubsection{Simulation de Trafic Malveillant}
+Génération automatisée de requêtes vers des domaines malveillants, simulant :
+\begin{itemize}
+    \item \textbf{Communications C2} : Beaconing vers serveurs de commande
+    \item \textbf{Exfiltration DNS} : Tunneling de données via requêtes DNS
+    \item \textbf{Malware downloads} : Téléchargement de fichiers suspects
+    \item \textbf{Phishing} : Accès à sites de hameçonnage
+\end{itemize}
+
+\section{Chapitre 5 - Intégrations et APIs}
+
+\subsection{Connecteurs Développés}
+
+Création de connecteurs spécialisés pour l'intégration avec :
+\begin{itemize}
+    \item \textbf{Systèmes d'Information Hospitaliers (SIH)} : HL7, FHIR
+    \item \textbf{Équipements médicaux} : DICOM, Modbus, protocoles propriétaires
+    \item \textbf{Systèmes de gestion des identités} : Active Directory, LDAP
+    \item \textbf{Solutions de sauvegarde} : Intégration pour la restauration post-incident
+\end{itemize}
+
+\subsection{APIs REST}
+
+Développement d'APIs standardisées pour :
+\begin{itemize}
+    \item \textbf{Ingestion d'événements} : Endpoints pour sources tierces
+    \item \textbf{Consultation d'alertes} : Interface programmatique pour outils externes
+    \item \textbf{Automation externe} : Triggers pour systèmes de réponse automatique
+    \item \textbf{Reporting} : Génération programmatique de rapports
+\end{itemize}
+
+\section{Chapitre 6 - Déploiement et Configuration}
+
+\subsection{Containerisation Docker}
+
+L'ensemble de la solution est containerisé pour faciliter le déploiement :
+\begin{itemize}
+    \item \textbf{Images optimisées} : Containers spécialisés pour chaque composant
+    \item \textbf{Orchestration Docker Compose} : Déploiement coordonné des services
+    \item \textbf{Volumes persistants} : Sauvegarde des données critiques
+    \item \textbf{Réseaux isolés} : Segmentation au niveau container
+\end{itemize}
+
+\subsection{Scripts d'Installation}
+
+Automatisation complète du déploiement via :
+\begin{itemize}
+    \item \textbf{Scripts Bash} : Installation automatisée sur Ubuntu/CentOS
+    \item \textbf{Playbooks Ansible} : Configuration infrastructure as code
+    \item \textbf{Templates Terraform} : Provisioning cloud automatisé
+    \item \textbf{Health checks} : Validation automatique du déploiement
+\end{itemize}
+
+\subsection{Configuration de Production}
+
+Paramétrage optimisé pour l'environnement de production :
+\begin{itemize}
+    \item \textbf{Haute disponibilité} : Clustering et load balancing
+    \item \textbf{Monitoring} : Surveillance de la santé des services
+    \item \textbf{Backup} : Stratégies de sauvegarde automatisées
+    \item \textbf{Security hardening} : Durcissement sécuritaire des composants
+\end{itemize}
+
+\section{Chapitre 7 - Documentation et Maintenance}
+
+\subsection{Documentation Technique}
+
+Création d'une documentation exhaustive comprenant :
+\begin{itemize}
+    \item \textbf{Guides d'installation} : Procédures pas-à-pas détaillées
+    \item \textbf{Manuels d'utilisation} : Interfaces et fonctionnalités utilisateur
+    \item \textbf{Guides de troubleshooting} : Résolution des problèmes courants
+    \item \textbf{Documentation API} : Spécifications techniques complètes
+\end{itemize}
+
+\subsection{Formation et Transfert de Compétences}
+
+Programme de formation structuré incluant :
+\begin{itemize}
+    \item \textbf{Formation administrateurs} : Gestion et maintenance de la solution
+    \item \textbf{Formation analystes SOC} : Utilisation opérationnelle quotidienne
+    \item \textbf{Formation RSSI} : Pilotage stratégique et reporting
+    \item \textbf{Certification utilisateurs} : Validation des compétences acquises
+\end{itemize}
+
+\subsection{Maintenance Évolutive}
+
+Stratégie de maintenance long terme :
+\begin{itemize}
+    \item \textbf{Mises à jour sécuritaires} : Patch management automatisé
+    \item \textbf{Évolutions fonctionnelles} : Roadmap d'amélioration continue
+    \item \textbf{Optimisation performances} : Tuning proactif des composants
+    \item \textbf{Support utilisateur} : Helpdesk spécialisé cybersécurité
+\end{itemize}
+
+\section{Cohérence Architecturale et Intégration}
+
+Cette organisation en chapitres reflète la démarche méthodologique adoptée, chaque composant s'intégrant dans une architecture globale cohérente. L'approche modulaire facilite la maintenance, l'évolution et l'adaptation de la solution aux besoins spécifiques de chaque établissement hospitalier.
+
+La documentation détaillée de chaque chapitre permet une compréhension approfondie des choix techniques, des configurations déployées et des résultats obtenus, facilitant la reproduction et l'adaptation de la solution dans d'autres contextes.
+
+\newpage

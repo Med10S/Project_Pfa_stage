@@ -1,0 +1,331 @@
+\documentclass[12pt,a4paper,twoside]{report}
+
+% ===== PACKAGES =====
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+% Babel: 'francais' deprecated, switch to 'french'
+\usepackage[french]{babel}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{listings}
+\usepackage{csquotes} % Recommended with biblatex & babel
+% If using XeLaTeX/LuaLaTeX, inputenc is ignored; consider removing \usepackage{inputenc}
+\usepackage{xcolor}
+\usepackage{url}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage{setspace}
+\usepackage{titlesec}
+\usepackage{tocloft}
+\usepackage{appendix}
+\usepackage[style=numeric,backend=bibtex]{biblatex}
+\usepackage{pifont}
+\newcommand{\cmark}{\ding{51}} % check mark
+\newcommand{\warning}{\ding{115}} % warning symbol alternative
+
+% ===== CONFIGURATION DE PAGE =====
+\geometry{
+    left=3cm,
+    right=2.5cm,
+    top=2.5cm,
+    bottom=2.5cm,
+    headheight=15pt
+}
+
+% ===== STYLE DES EN-TÊTES ET PIEDS DE PAGE =====
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE]{\leftmark}
+\fancyhead[RO]{\rightmark}
+\fancyfoot[LE,RO]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% ===== CONFIGURATION DES TITRES =====
+\titleformat{\chapter}[hang]
+{\normalfont\LARGE\bfseries}{\thechapter}{1em}{}
+\titlespacing*{\chapter}{0pt}{-30pt}{20pt}
+
+% ===== ESPACEMENT =====
+\onehalfspacing
+\setlength{\parindent}{1.5em}
+\setlength{\parskip}{0.5em}
+
+% ===== CONFIGURATION DES LISTINGS AVANCÉE =====
+% Custom language definitions (simplified) for JSON, JavaScript, YAML
+\lstdefinelanguage{json}{
+    basicstyle=\ttfamily\small,
+    comment=[l]{//},
+    morestring=[b]",% strings
+    stringstyle=\color{orange!70!black},
+    showstringspaces=false
+}
+\lstdefinelanguage{JavaScript}{
+    keywords={function,var,let,const,if,for,while,return,else,try,catch,new,JSON,parse,stringify,setInterval},
+    sensitive=true,
+    comment=[l]{//},
+    morecomment=[s]{/*}{*/},
+    morestring=[b]",
+    morestring=[b]',
+}
+\lstdefinelanguage{yaml}{
+    comment=[l]{#},
+    morestring=[b]",morestring=[b]',
+    keywords={true,false,null,yes,no},
+    sensitive=false,
+}
+\lstset{
+    backgroundcolor=\color{gray!10},
+    basicstyle=\footnotesize\ttfamily,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    commentstyle=\color{green!40!black}\slshape,
+    deletekeywords={...},
+    escapeinside={\%*}{*)},
+    extendedchars=true,
+    frame=leftline,
+    framerule=4pt,
+    keepspaces=true,
+    keywordstyle=\color{blue}\bfseries,
+    language=bash,
+    morekeywords={*,...},
+    numbers=left,
+    numbersep=8pt,
+    numberstyle=\tiny\color{gray},
+    rulecolor=\color{blue!80!black},
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    stepnumber=1,
+    stringstyle=\color{orange},
+    tabsize=2,
+    title=\lstname,
+    xleftmargin=15pt,
+    framexleftmargin=15pt
+}
+
+% Styles spécialisés pour différents langages
+\lstdefinestyle{xmlstyle}{
+    language=XML,
+    backgroundcolor=\color{yellow!10},
+    keywordstyle=\color{purple}\bfseries,
+    commentstyle=\color{green!50!black}\slshape,
+    stringstyle=\color{red!70!black},
+    frame=leftline,
+    framerule=3pt,
+    rulecolor=\color{purple!80!black}
+}
+
+\lstdefinestyle{pythonstyle}{
+    language=Python,
+    backgroundcolor=\color{blue!5},
+    keywordstyle=\color{blue}\bfseries,
+    commentstyle=\color{green!50!black}\slshape,
+    stringstyle=\color{red!70!black},
+    frame=leftline,
+    framerule=3pt,
+    rulecolor=\color{blue!80!black}
+}
+
+\lstdefinestyle{bashstyle}{
+    language=bash,
+    backgroundcolor=\color{black!5},
+    keywordstyle=\color{green!50!black}\bfseries,
+    commentstyle=\color{gray}\slshape,
+    stringstyle=\color{red!70!black},
+    frame=leftline,
+    framerule=3pt,
+    rulecolor=\color{green!80!black}
+}
+
+\lstdefinestyle{jsonstyle}{
+    language=json,
+    backgroundcolor=\color{orange!5},
+    keywordstyle=\color{orange}\bfseries,
+    commentstyle=\color{green!50!black}\slshape,
+    stringstyle=\color{blue!70!black},
+    frame=leftline,
+    framerule=3pt,
+    rulecolor=\color{orange!80!black}
+}
+
+\lstdefinestyle{jsstyle}{
+    language=JavaScript,
+    backgroundcolor=\color{yellow!10},
+    keywordstyle=\color{purple}\bfseries,
+    commentstyle=\color{green!50!black}\slshape,
+    stringstyle=\color{red!70!black},
+    frame=leftline,
+    framerule=3pt,
+    rulecolor=\color{purple!80!black}
+}
+
+\lstdefinestyle{yamlstyle}{
+    language=yaml,
+    backgroundcolor=\color{gray!5},
+    keywordstyle=\color{blue!70!black}\bfseries,
+    commentstyle=\color{green!50!black}\slshape,
+    stringstyle=\color{orange!70!black},
+    frame=leftline,
+    framerule=3pt,
+    rulecolor=\color{blue!40!black}
+}
+
+% ===== COULEURS PERSONNALISÉES =====
+\definecolor{soarblue}{RGB}{51,102,153}
+\definecolor{soargreen}{RGB}{102,153,51}
+\definecolor{soarred}{RGB}{153,51,51}
+
+% ===== HYPERLIENS =====
+\hypersetup{
+    colorlinks=true,
+    linkcolor=soarblue,
+    urlcolor=soarblue,
+    citecolor=soargreen,
+    pdfauthor={Med10S},
+    pdftitle={Rapport de Stage PFA - Système SIEM/SOAR pour SOC Hospitalier},
+    pdfsubject={Cybersécurité - SOC - SIEM/SOAR},
+    pdfkeywords={SIEM, SOAR, Cybersécurité, Hôpital, SOC, TheHive, Wazuh}
+}
+
+% ===== BIBLIOGRAPHIE =====
+\addbibresource{bibliography.bib}
+
+% ===== INFORMATIONS DU DOCUMENT =====
+\title{%
+    \textbf{Conception et Implémentation d'un Système SIEM/SOAR} \\
+    \vspace{0.5cm}
+    \large{pour Centre d'Opérations de Sécurité Hospitalière} \\
+    \vspace{1cm}
+    \normalsize{Rapport de Projet de Fin d'Année (PFA)}
+}
+
+\author{%
+    \textbf{Med10S} \\
+    \vspace{0.3cm}
+    \small{Étudiant en Génie des Télécommunications et Réseaux (GTR)} \\
+    \small{Semestre 4 - Année Universitaire 2024-2025}
+}
+
+\date{Juillet 2025}
+
+% ===== DÉBUT DU DOCUMENT =====
+\begin{document}
+
+% ===== PAGE DE TITRE =====
+\begin{titlepage}
+    \centering
+
+    % Logo institution (à ajouter si disponible)
+    % \includegraphics[width=0.3\textwidth]{images/logo_institution.png}\\[1cm]
+
+    \vspace{2cm}
+
+    {\huge\bfseries Conception et Implémentation d'un Système SIEM/SOAR\par}
+    \vspace{1cm}
+    {\Large pour Centre d'Opérations de Sécurité Hospitalière\par}
+
+    \vspace{2cm}
+
+    {\Large\itshape Rapport de Projet de Fin d'Année (PFA)\par}
+
+    \vspace{2cm}
+
+    \begin{minipage}{0.4\textwidth}
+        \begin{flushleft} \large
+            \emph{Étudiant:}\\
+            \textbf{Med10S}
+        \end{flushleft}
+    \end{minipage}%
+    \begin{minipage}{0.4\textwidth}
+        \begin{flushright} \large
+            \emph{Encadrant:} \\
+            \textbf{[Nom Encadrant]}
+        \end{flushright}
+    \end{minipage}
+
+    \vspace{2cm}
+
+    {\large Formation: Génie des Télécommunications et Réseaux (GTR)\par}
+    {\large Semestre 4 - Année 2024-2025\par}
+
+    \vfill
+
+    {\large Juillet 2025\par}
+
+    \vspace{1cm}
+
+    % Logo école (à ajouter si disponible)
+    % \includegraphics[width=0.2\textwidth]{images/logo_ecole.png}
+
+\end{titlepage}
+
+% ===== NUMÉROTATION ARABE POUR TOUT LE DOCUMENT =====
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+% ===== REMERCIEMENTS =====
+\input{sections/remerciements}
+
+% ===== RÉSUMÉ =====
+\input{sections/resume}
+
+% ===== ABSTRACT =====
+\input{sections/abstract}
+
+% ===== LISTE DES ABRÉVIATIONS =====
+\input{sections/abreviations}
+
+% ===== TABLE DES MATIÈRES =====
+\tableofcontents
+\newpage
+
+% ===== LISTE DES FIGURES =====
+\listoffigures
+\newpage
+
+% ===== LISTE DES TABLEAUX =====
+\listoftables
+\newpage
+
+% ===== CHAPITRES PRINCIPAUX =====
+\input{sections/chapitre1_contexte}
+\input{sections/chapitre2_methodologie}
+\input{sections/chapitre3_implementation}
+\input{sections/chapitre4_tests}
+\input{sections/chapitre5_resultats}
+
+% ===== INTRODUCTION GÉNÉRALE =====
+\input{sections/introduction}
+
+% ===== STRUCTURE DU PROJET =====
+\input{sections/structure_projet}
+
+% ===== CONCLUSION GÉNÉRALE =====
+\input{sections/conclusion}
+
+% ===== PERSPECTIVES FUTURES =====
+\input{sections/perspectives}
+
+% ===== BIBLIOGRAPHIE =====
+\printbibliography[title=Références Bibliographiques]
+
+% ===== ANNEXES =====
+\appendix
+\input{sections/annexes}
+
+% ===== GLOSSAIRE =====
+\input{sections/glossaire}
+
+\end{document}

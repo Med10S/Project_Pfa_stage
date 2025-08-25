@@ -1,0 +1,173 @@
+\chapter{Introduction Générale}
+
+\section{Contexte et Enjeux de la Cybersécurité Hospitalière}
+
+La transformation numérique du secteur de la santé a considérablement modifié le paysage des menaces cybernétiques auxquelles font face les établissements hospitaliers. Cette évolution, accélérée par la pandémie de COVID-19, a multiplié les surfaces d'attaque et les vulnérabilités potentielles dans des environnements où la continuité de service peut directement impacter la vie humaine.
+
+\subsection{Particularités de l'Environnement Hospitalier}
+
+Les établissements de santé présentent des caractéristiques uniques qui complexifient leur sécurisation :
+
+\begin{itemize}
+    \item \textbf{Criticité temporelle} : Les systèmes médicaux ne peuvent tolérer d'interruptions prolongées sans risquer la sécurité des patients
+    \item \textbf{Hétérogénéité technologique} : Coexistence d'équipements médicaux spécialisés, de systèmes d'information hospitaliers (SIH) et d'infrastructures IT traditionnelles
+    \item \textbf{Contraintes réglementaires} : Conformité stricte aux standards HIPAA (Health Insurance Portability and Accountability Act) et RGPD (Règlement Général sur la Protection des Données)
+    \item \textbf{Sensibilité des données} : Manipulation de données de santé à caractère hautement personnel et confidentiel
+\end{itemize}
+
+\subsection{Évolution des Menaces Cybernétiques en Santé}
+
+Les statistiques récentes révèlent une augmentation alarmante des cyberattaques ciblant le secteur de la santé. Selon l'Agence de la cybersécurité et de la sécurité des infrastructures (CISA), les attaques par ransomware contre les établissements de santé ont augmenté de 123\% entre 2021 et 2024. Cette escalation s'explique par plusieurs facteurs :
+
+\begin{enumerate}
+    \item \textbf{Valeur économique des données de santé} : Les dossiers médicaux se négocient jusqu'à 250\$ sur le dark web, soit 50 fois plus qu'un numéro de carte bancaire
+    \item \textbf{Vulnérabilités systémiques} : Présence d'équipements médicaux connectés souvent obsolètes et difficilement patchables
+    \item \textbf{Pression temporelle} : La criticité des services de santé incite au paiement rapide des rançons
+    \item \textbf{Complexité infrastructurelle} : Segmentation réseau insuffisante et visibilité limitée sur les actifs connectés
+\end{enumerate}
+
+\section{Problématique et Motivation}
+
+\subsection{Défis de la Détection d'Incidents en Environnement Hospitalier}
+
+La détection efficace des incidents de sécurité dans un contexte hospitalier présente plusieurs défis spécifiques :
+
+\subsubsection{Latence de Détection}
+
+Les méthodes traditionnelles de surveillance sécuritaire présentent des délais de détection incompatibles avec les exigences hospitalières. Une étude de l'IBM Security révèle que le temps moyen de détection d'une intrusion dans le secteur de la santé s'établit à 329 jours, permettant aux attaquants de maintenir une persistance prolongée dans les systèmes.
+
+\subsubsection{Volume et Diversité des Événements}
+
+Un établissement hospitalier de taille moyenne génère quotidiennement plusieurs millions d'événements de sécurité. Cette volumétrie, combinée à la diversité des sources (équipements médicaux, systèmes administratifs, infrastructures réseau), complique l'identification des signaux faibles annonciateurs d'attaques sophistiquées.
+
+\subsubsection{Faux Positifs et Fatigue Opérationnelle}
+
+Les systèmes de détection traditionnels génèrent un taux élevé de fausses alertes, conduisant à une fatigue opérationnelle des équipes de sécurité. Cette situation peut masquer de véritables incidents de sécurité dans le bruit de fond des alertes non pertinentes.
+
+\subsection{Limites des Approches Actuelles}
+
+\subsubsection{Solutions Ponctuelles et Cloisonnées}
+
+La plupart des établissements hospitaliers déploient des solutions de sécurité hétérogènes et non intégrées, créant des silos informationnels qui limitent la capacité de corrélation et d'analyse globale des incidents.
+
+\subsubsection{Absence d'Automatisation}
+
+L'absence de processus automatisés de réponse aux incidents contraint les équipes de sécurité à des interventions manuelles chronophages, retardant la containment des menaces et augmentant l'exposition aux risques.
+
+\subsubsection{Manque de Contexte et d'Intelligence}
+
+Les systèmes existants peinent à enrichir les alertes avec le contexte métier nécessaire à une prise de décision éclairée, notamment concernant l'impact potentiel sur les soins aux patients.
+
+\section{Objectifs du Projet}
+
+\subsection{Objectif Principal}
+
+Ce projet vise à concevoir et implémenter une solution intégrée de Centre d'Opérations de Sécurité (SOC) spécialement adaptée aux contraintes et exigences du secteur hospitalier. Cette solution s'articule autour d'une architecture SIEM/SOAR (Security Information and Event Management / Security Orchestration, Automation and Response) permettant une détection proactive, une analyse intelligente et une réponse automatisée aux incidents de cybersécurité.
+
+\subsection{Objectifs Spécifiques}
+
+\subsubsection{Amélioration de la Détection}
+
+\begin{itemize}
+    \item Réduire le temps de détection des incidents de 329 jours à moins de 5 minutes
+    \item Atteindre un taux de détection supérieur à 90\% pour les attaques connues
+    \item Minimiser le taux de faux positifs en dessous de 5\%
+    \item Implémenter une détection multi-couches couvrant le réseau, les endpoints et les applications web
+\end{itemize}
+
+\subsubsection{Automatisation de la Réponse}
+
+\begin{itemize}
+    \item Automatiser 60\% des réponses aux incidents de niveau faible à moyen
+    \item Réduire le temps de réponse initial de plusieurs heures à moins de 30 secondes
+    \item Implémenter des playbooks de réponse adaptés aux spécificités hospitalières
+    \item Assurer la traçabilité complète des actions automatisées pour la conformité réglementaire
+\end{itemize}
+
+\subsubsection{Intégration et Corrélation}
+
+\begin{itemize}
+    \item Centraliser la collecte d'événements de sécurité provenant de l'ensemble de l'infrastructure
+    \item Implémenter des mécanismes de corrélation avancés pour identifier les attaques multi-étapes
+    \item Enrichir les alertes avec de l'intelligence sur les menaces (threat intelligence)
+    \item Fournir une vue unifiée de la posture sécuritaire de l'établissement
+\end{itemize}
+
+\subsubsection{Conformité et Audit}
+
+\begin{itemize}
+    \item Assurer la conformité aux standards HIPAA et RGPD
+    \item Implémenter une journalisation exhaustive pour les audits de sécurité
+    \item Générer automatiquement les rapports de conformité requis
+    \item Maintenir l'intégrité et la non-répudiation des logs de sécurité
+\end{itemize}
+
+\section{Approche Méthodologique}
+
+\subsection{Analyse des Besoins}
+
+La phase d'analyse s'appuie sur l'étude de la littérature scientifique, l'analyse des retours d'expérience du secteur et l'identification des meilleures pratiques en matière de cybersécurité hospitalière. Cette analyse permet de définir les exigences fonctionnelles et non-fonctionnelles de la solution.
+
+\subsection{Conception Architecturale}
+
+L'architecture proposée suit une approche en couches permettant :
+\begin{itemize}
+    \item La séparation des préoccupations entre détection, analyse et réponse
+    \item L'évolutivité et la maintenabilité de la solution
+    \item L'intégration avec les infrastructures existantes
+    \item La résilience et la haute disponibilité
+\end{itemize}
+
+\subsection{Prototypage et Validation}
+
+Le développement suit une approche itérative avec :
+\begin{itemize}
+    \item Implémentation d'un prototype fonctionnel
+    \item Tests d'intrusion contrôlés pour valider l'efficacité de la détection
+    \item Évaluation des performances et de la scalabilité
+    \item Mesure des métriques de sécurité (temps de détection, taux de faux positifs, etc.)
+\end{itemize}
+
+\section{Contributions Attendues}
+
+\subsection{Contributions Scientifiques}
+
+\begin{itemize}
+    \item Proposition d'une architecture SOAR adaptée aux spécificités hospitalières
+    \item Développement de mécanismes de corrélation d'événements optimisés pour l'environnement médical
+    \item Création de playbooks de réponse automatisée respectant les contraintes de continuité de service
+\end{itemize}
+
+\subsection{Contributions Techniques}
+
+\begin{itemize}
+    \item Implémentation d'une solution open source complète et documentée
+    \item Développement de connecteurs spécialisés pour équipements médicaux
+    \item Création de tableaux de bord adaptés aux besoins des RSSI hospitaliers
+\end{itemize}
+
+\subsection{Contributions Pratiques}
+
+\begin{itemize}
+    \item Réduction significative des coûts de cybersécurité par l'automatisation
+    \item Amélioration de la posture sécuritaire des établissements de santé
+    \item Facilitation de la conformité réglementaire
+\end{itemize}
+
+\section{Organisation du Rapport}
+
+Ce rapport s'organise autour de la structure logique du projet, chaque chapitre correspondant à une phase de développement ou à un composant majeur de l'architecture :
+
+\begin{itemize}
+    \item \textbf{Chapitre 1 - Architecture Système} : Présentation de l'architecture globale, de la topologie réseau et des flux de données
+    \item \textbf{Chapitre 2 - Couche de Détection} : Description des systèmes de détection (Suricata, Wazuh, ModSecurity)
+    \item \textbf{Chapitre 3 - Stack SOAR} : Implémentation des composants d'orchestration (TheHive, Cortex, MISP, n8n)
+    \item \textbf{Chapitre 4 - Scénarios d'Attaque} : Tests de validation et évaluation des performances
+    \item \textbf{Chapitre 5 - Intégrations} : Connecteurs et APIs d'intégration
+    \item \textbf{Chapitre 6 - Déploiement} : Procédures d'installation et de configuration
+    \item \textbf{Chapitre 7 - Documentation} : Guides utilisateur et documentation technique
+\end{itemize}
+
+Chaque chapitre présente les aspects théoriques, l'implémentation pratique et les résultats obtenus, offrant une vision complète du projet depuis sa conception jusqu'à sa validation opérationnelle.
+
+\newpage

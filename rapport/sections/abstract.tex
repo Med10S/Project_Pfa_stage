@@ -1,0 +1,57 @@
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+
+\vspace{1cm}
+
+\textbf{Context and Problem Statement}
+
+Healthcare institutions face increasing cybersecurity challenges in the context of accelerated digitization of their information systems. Connected medical devices, electronic patient records, and critical hospital management systems constitute privileged targets for cyberattackers. Since service continuity is vital in the medical environment, it is imperative to have incident detection and response capabilities that are both fast and reliable.
+
+\vspace{0.5cm}
+
+\textbf{Project Objectives}
+
+This final year project aims to design and implement a comprehensive Security Operations Center (SOC) solution adapted to hospital specificities. The main objective is to create a SIEM/SOAR (Security Information and Event Management / Security Orchestration, Automation and Response) architecture capable of proactively detecting cyber threats, automating incident responses, and maintaining regulatory compliance (HIPAA, GDPR).
+
+\vspace{0.5cm}
+
+\textbf{Methodology and Architecture}
+
+The proposed architecture is structured around four interconnected functional layers:
+
+\begin{itemize}
+    \item \textbf{Detection Layer}: Integration of Suricata (network IDS/IPS), Wazuh (central SIEM), and ModSecurity (WAF) for multi-level security coverage
+    \item \textbf{Analysis Layer}: Deployment of TheHive (incident management), Cortex (automated analysis), and MISP (threat intelligence)
+    \item \textbf{Orchestration Layer}: Use of n8n for incident response workflow automation
+    \item \textbf{Presentation Layer}: Unified monitoring interfaces and management dashboards
+\end{itemize}
+
+\vspace{0.5cm}
+
+\textbf{Implementation and Testing}
+
+The implementation was validated through controlled penetration tests covering three attack categories: EternalBlue exploitation (CVE-2017-0144), XSS (Cross-Site Scripting) attacks, and malicious website access. Results demonstrate an overall detection rate of 90.9\% with an average response time of 4.7 seconds.
+
+\vspace{0.5cm}
+
+\textbf{Contributions and Benefits}
+
+This solution brings several significant innovations:
+\begin{itemize}
+    \item Automation of 59.4\% of security incidents through SOAR playbooks
+    \item 70\% reduction in response time compared to manual approaches
+    \item Compliance with hospital security standards (HIPAA/GDPR)
+    \item Scalable architecture compatible with existing infrastructures
+\end{itemize}
+
+\vspace{0.5cm}
+
+\textbf{Future Perspectives}
+
+Future extensions include the integration of machine learning algorithms for behavioral detection, improvement of advanced persistent threat (APT) detection, and extension of the solution to other critical sectors.
+
+\vspace{1cm}
+
+\textbf{Keywords:} SIEM, SOAR, Hospital cybersecurity, SOC, Intrusion detection, Response automation, TheHive, Wazuh, Threat Intelligence
+
+\newpage

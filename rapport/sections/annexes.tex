@@ -1,0 +1,1321 @@
+\appendix
+
+\chapter{Configurations Techniques}
+
+\section{Configuration Suricata}
+
+\subsection{Fichier Principal suricata.yaml}
+
+\begin{lstlisting}[style=yamlstyle,caption=Configuration Suricata pour environnement hospitalier]
+%YAML 1.1
+---
+
+vars:
+  address-groups:
+    HOME_NET: "[192.168.15.0/24,192.168.181.0/24,192.168.183.0/24]"
+    EXTERNAL_NET: "!$HOME_NET"
+    HTTP_SERVERS: "$HOME_NET"
+    SMTP_SERVERS: "$HOME_NET"
+    SQL_SERVERS: "$HOME_NET"
+    DNS_SERVERS: "$HOME_NET"
+    TELNET_SERVERS: "$HOME_NET"
+    AIM_SERVERS: "$EXTERNAL_NET"
+    DC_SERVERS: "$HOME_NET"
+    DNP3_SERVER: "$HOME_NET"
+    DNP3_CLIENT: "$HOME_NET"
+    MODBUS_CLIENT: "$HOME_NET"
+    MODBUS_SERVER: "$HOME_NET"
+    ENIP_CLIENT: "$HOME_NET"
+    ENIP_SERVER: "$HOME_NET"
+
+  port-groups:
+    HTTP_PORTS: "80"
+    SHELLCODE_PORTS: "!80"
+    ORACLE_PORTS: 1521
+    SSH_PORTS: 22
+    DNP3_PORTS: 20000
+    MODBUS_PORTS: 502
+    FILE_DATA_PORTS: "[$HTTP_PORTS,110,143]"
+    FTP_PORTS: 21
+    GENEVE_PORTS: 6081
+    VXLAN_PORTS: 4789
+    TEREDO_PORTS: 3544
+
+runmode: autofp
+
+max-pending-packets: 1024
+
+outputs:
+  - fast:
+      enabled: yes
+      filename: fast.log
+      append: yes
+  - eve-log:
+      enabled: yes
+      filetype: regular
+      filename: eve.json
+      types:
+        - alert:
+            payload: yes
+            payload-printable: yes
+            packet: yes
+            metadata: yes
+            http-body: yes
+            http-body-printable: yes
+            tagged-packets: yes
+        - http:
+            extended: yes
+        - dns
+        - tls:
+            extended: yes
+        - files:
+            force-magic: no
+        - smtp
+        - ssh
+        - stats:
+            totals: yes
+            threads: no
+            deltas: no
+        - flow
+
+app-layer:
+  protocols:
+    http:
+      enabled: yes
+      memcap: 64mb
+    tls:
+      enabled: yes
+      detection-ports:
+        dp: 443
+    ftp:
+      enabled: yes
+    smtp:
+      enabled: yes
+    ssh:
+      enabled: yes
+    dns:
+      tcp:
+        enabled: yes
+        detection-ports:
+          dp: 53
+      udp:
+        enabled: yes
+        detection-ports:
+          dp: 53
+
+rule-files:
+  - suricata.rules
+  - /var/lib/suricata/rules/emerging-threats.rules
+  - /var/lib/suricata/rules/hospital-custom.rules
+
+classification-file: /etc/suricata/classification.config
+reference-config-file: /etc/suricata/reference.config
+
+default-rule-path: /var/lib/suricata/rules
+
+detect:
+  profile: medium
+  custom-values:
+    toclient-groups: 3
+    toserver-groups: 25
+  sgh-mpm-context: auto
+  inspection-recursion-limit: 3000
+
+mpm-algo: auto
+
+threading:
+  set-cpu-affinity: no
+  cpu-affinity:
+    - management-cpu-set:
+        cpu: [ 0 ]
+    - receive-cpu-set:
+        cpu: [ 0 ]
+    - worker-cpu-set:
+        cpu: [ "all" ]
+        mode: "exclusive"
+        prio:
+          low: [ 0 ]
+          medium: [ "1-2" ]
+          high: [ 3 ]
+          default: "medium"
+
+profiling:
+  rules:
+    enabled: yes
+    filename: rule_perf.log
+    append: yes
+    sort: avgticks
+    limit: 10
+  keywords:
+    enabled: yes
+    filename: keyword_perf.log
+    append: yes
+  rulegroups:
+    enabled: yes
+    filename: rule_group_perf.log
+    append: yes
+
+pcap-file:
+  checksum-checks: auto
+
+logging:
+  default-log-level: notice
+  outputs:
+  - console:
+      enabled: yes
+  - file:
+      enabled: yes
+      level: info
+      filename: suricata.log
+  - syslog:
+      enabled: no
+      facility: local5
+      format: "[%i] <%d> -- "
+\end{lstlisting}
+
+\subsection{Regles Personnalisees pour EternalBlue}
+
+\begin{lstlisting}[caption=Regles Suricata pour detection EternalBlue]
+# EternalBlue Detection Rules - hospital-custom.rules
+
+# SMBv1 Negotiate detection
+alert smb any any -> any 445 (msg:"ETERNALBLUE SMBv1 Negotiate Attempt"; 
+  flow:to_server; content:"|ff|SMB|72|"; offset:4; depth:4;
+  content:"|00 00 00 2f|"; offset:0; depth:4;
+  sid:2024001; rev:1; classtype:attempted-admin;)
+
+# EternalBlue exploit packet detection
+alert tcp any any -> any 445 (msg:"ETERNALBLUE MS17-010 SMB Exploit Detected"; 
+  flow:to_server,established; content:"|00 00 00 2f fe 53 4d 42|"; 
+  depth:8; offset:0; content:"|72 00 00 00 00 18 01 20|"; 
+  distance:0; within:16; sid:2024002; rev:1; classtype:trojan-activity;)
+
+# DoublePulsar backdoor detection
+alert tcp any any -> any 445 (msg:"ETERNALBLUE DoublePulsar Backdoor Communication"; 
+  flow:to_server; content:"DoublePulsar"; nocase; 
+  sid:2024003; rev:1; classtype:trojan-activity;)
+
+# High volume SMB traffic (potential brute force)
+alert tcp any any -> any 445 (msg:"ETERNALBLUE High Volume SMB Traffic - Potential Attack";
+  flow:to_server; threshold:type both, track by_src, count 100, seconds 60;
+  sid:2024004; rev:1; classtype:attempted-dos;)
+
+# SMB buffer overflow attempt
+alert tcp any any -> any 445 (msg:"ETERNALBLUE SMB Buffer Overflow Attempt";
+  flow:to_server; content:"|00 00 00|"; depth:3; offset:0;
+  byte_test:4,>,1000,0,relative; content:"|a0 00|"; distance:0; within:20;
+  sid:2024005; rev:1; classtype:attempted-admin;)
+\end{lstlisting}
+
+\section{Configuration Wazuh}
+
+\subsection{Regles de Correlation EternalBlue}
+
+\begin{lstlisting}[style=xmlstyle,caption=Regles Wazuh pour EternalBlue]
+<!-- EternalBlue detection rules -->
+<group name="eternalblue,windows,exploit">
+
+  <!-- Windows Event 4625 - Failed logon after EternalBlue attempt -->
+  <rule id="100001" level="12">
+    <if_sid>4625</if_sid>
+    <field name="win.eventdata.logonType">^3$</field>
+    <field name="win.eventdata.status">0xc000006d</field>
+    <description>EternalBlue: Suspicious failed network logon detected</description>
+    <group>authentication_failed,eternalblue</group>
+  </rule>
+
+  <!-- SMB connection anomaly detection -->
+  <rule id="100002" level="10">  
+    <if_sid>18152</if_sid>
+    <match>445/tcp</match>
+    <regex>SYN_FLOOD|CONN_FLOOD</regex>
+    <description>EternalBlue: SMB connection flood detected</description>
+    <group>network_flood,eternalblue</group>
+  </rule>
+
+  <!-- Process creation after SMB exploitation -->
+  <rule id="100003" level="13">
+    <decoded_as>windows-eventlog</decoded_as>
+    <field name="win.system.eventID">^1$</field>
+    <field name="win.eventdata.image">cmd.exe|powershell.exe|rundll32.exe</field>
+    <regex>CreateRemoteThread|WriteProcessMemory|VirtualAllocEx</regex>
+    <description>EternalBlue: Suspicious process injection after SMB connection</description>
+    <group>process_injection,eternalblue</group>
+  </rule>
+
+  <!-- Registry modification indicating persistence -->
+  <rule id="100004" level="11">
+    <decoded_as>windows-eventlog</decoded_as>
+    <field name="win.system.eventID">^13$</field>
+    <field name="win.eventdata.targetObject">Run|RunOnce|Winlogon</field>
+    <time>same_minute</time>
+    <if_matched_sid>100003</if_matched_sid>
+    <description>EternalBlue: Registry persistence mechanism detected</description>
+    <group>persistence,eternalblue</group>
+  </rule>
+
+  <!-- Network communication to suspicious IPs -->
+  <rule id="100005" level="10">
+    <decoded_as>windows-eventlog</decoded_as>
+    <field name="win.system.eventID">^3$</field>
+    <field name="win.eventdata.protocol">TCP</field>
+    <regex>192.168.183.100|external_c2_list</regex>
+    <time>same_hour</time>
+    <if_matched_sid>100003</if_matched_sid>
+    <description>EternalBlue: Suspicious network communication detected</description>
+    <group>command_control,eternalblue</group>
+  </rule>
+
+</group>
+\end{lstlisting}
+
+\subsection{Configuration Webhook n8n}
+
+\begin{lstlisting}[style=xmlstyle,caption=Configuration Webhook Wazuh vers n8n]
+<!-- Integration with n8n for SOAR automation -->
+<integration>
+  <name>custom-eternalblue-webhook</name>
+  <hook_url>http://sbihi.soar.ma:5678/webhook/eternalblue-alert</hook_url>
+  <level>10</level>
+  <group>eternalblue</group>
+  <alert_format>json</alert_format>
+</integration>
+
+<integration>
+  <name>custom-dns-integration</name>
+  <hook_url>http://sbihi.soar.ma:5678/webhook/wazuh-sysmon</hook_url>
+  <level>3</level>
+  <group>sysmon_event_22</group>
+  <alert_format>json</alert_format>
+</integration>
+
+<integration>
+  <name>custom-ssh-webhook</name>
+  <hook_url>http://sbihi.soar.ma:5678/webhook/wazuh-ssh</hook_url>
+  <level>3</level>
+  <alert_format>json</alert_format>
+  <rule_id>40111,60122,5758,2502,5710,5760,5763,5503</rule_id>
+</integration>
+\end{lstlisting}
+
+\section{Configuration ModSecurity}
+
+\subsection{Regles Personnalisees XSS}
+
+\begin{lstlisting}[caption=Regles ModSecurity pour protection XSS avancee]
+# Advanced XSS Protection Rules for Hospital Environment
+
+# IP tracking for debugging
+SecRule REQUEST_HEADERS:X-Forwarded-For "@rx ." \
+    "id:900100,phase:1,pass,log,\
+     msg:'X-Forwarded-For header detected: %{REQUEST_HEADERS.X-Forwarded-For}'"
+
+SecRule REQUEST_HEADERS:X-Real-IP "@rx ." \
+    "id:900101,phase:1,pass,log,\
+     msg:'X-Real-IP header detected: %{REQUEST_HEADERS.X-Real-IP}'"
+
+# Docker bridge traffic detection
+SecRule REMOTE_ADDR "@ipMatch 172.20.0.0/16" \
+    "id:900102,phase:1,pass,log,\
+     msg:'Docker bridge traffic detected from: %{REMOTE_ADDR}'"
+
+# Real attacker IP detection
+SecRule REMOTE_ADDR "@rx ^192\.168\.1\." \
+    "id:900103,phase:1,pass,log,\
+     msg:'Real attacker IP detected: %{REMOTE_ADDR}'"
+
+# Advanced XSS detection with context
+SecRule ARGS "@detectXSS" \
+    "id:1001,phase:2,block,\
+     msg:'XSS Attack Detected in Arguments',\
+     logdata:'Matched Data: %{MATCHED_VAR} found in %{MATCHED_VAR_NAME}',\
+     tag:'application-multi',tag:'language-multi',tag:'attack-xss',\
+     severity:'CRITICAL'"
+
+# Hospital-specific XSS patterns
+SecRule ARGS "@rx (?i)(\<script[^>]*\>[\s\S]*?\</script\>|javascript:|data:text/html|vbscript:)" \
+    "id:1002,phase:2,block,\
+     msg:'XSS Attack - Script Injection in Hospital System',\
+     tag:'attack-xss',tag:'hospital-specific',\
+     severity:'HIGH'"
+
+# Event handler XSS detection
+SecRule ARGS "@rx (?i)on(abort|blur|change|click|error|focus|load|reset|submit)\s*=" \
+    "id:1003,phase:2,block,\
+     msg:'XSS Attack - Event Handler in Medical Application',\
+     tag:'attack-xss',tag:'event-handler',\
+     severity:'HIGH'"
+
+# Encoded XSS attempts
+SecRule ARGS "@rx (?i)(%3C|&lt;|\\x3c)(script|img|svg|iframe)" \
+    "id:1004,phase:2,block,\
+     msg:'XSS Attack - Encoded Script Tag',\
+     tag:'attack-xss',tag:'encoded',\
+     severity:'MEDIUM'"
+
+# Medical form specific protection
+SecRule REQUEST_URI "@contains /patient/" \
+    "id:1010,phase:1,pass,nolog,\
+     setvar:'tx.patient_form=1'"
+
+SecRule ARGS "@rx (?i)(patient|medical|diagnosis|prescription)" \
+    "id:1011,phase:2,pass,\
+     msg:'Medical data context detected',\
+     tag:'medical-data',\
+     chain"
+    SecRule TX:patient_form "@eq 1" \
+        "msg:'Enhanced XSS protection for patient data forms',\
+         tag:'patient-protection'"
+
+# Response monitoring for successful attacks
+SecRule RESPONSE_BODY "@rx (?i)(\<script|\%3cscript)" \
+    "id:1020,phase:4,block,\
+     msg:'XSS payload detected in response',\
+     tag:'response-xss',\
+     severity:'HIGH'"
+\end{lstlisting}
+
+\chapter{Scripts d'Automatisation}
+
+\section{Script d'Attachement TheHive}
+
+\begin{lstlisting}[style=jsstyle,caption=Script n8n pour attachement de fichiers TheHive]
+// n8n_thehive_attach.js - TheHive file attachment automation
+
+const fs = require('fs');
+const path = require('path');
+const FormData = require('form-data');
+const axios = require('axios');
+
+async function attachFileToTheHive(config) {
+    const {
+        thehive_url,
+        api_key,
+        alert_id,
+        file_path,
+        file_name,
+        description = 'Automated evidence attachment'
+    } = config;
+
+    try {
+        // Verify file exists
+        if (!fs.existsSync(file_path)) {
+            throw new Error(`File not found: ${file_path}`);
+        }
+
+        // Get file stats
+        const stats = fs.statSync(file_path);
+        console.log(`[+] File size: ${stats.size} bytes`);
+
+        // Create form data
+        const form = new FormData();
+        form.append('attachment', fs.createReadStream(file_path), {
+            filename: file_name,
+            contentType: 'application/octet-stream'
+        });
+
+        // Add metadata
+        form.append('description', description);
+        form.append('tags', JSON.stringify(['evidence', 'automated', 'pcap']));
+
+        // TheHive API request
+        const response = await axios.post(
+            `${thehive_url}/api/alert/${alert_id}/artifact`,
+            form,
+            {
+                headers: {
+                    'Authorization': `Bearer ${api_key}`,
+                    'Content-Type': `multipart/form-data; boundary=${form.getBoundary()}`
+                },
+                timeout: 30000,
+                maxContentLength: Infinity,
+                maxBodyLength: Infinity
+            }
+        );
+
+        console.log('[+] File attached successfully');
+        console.log(`[+] Artifact ID: ${response.data._id}`);
+        
+        return {
+            success: true,
+            artifact_id: response.data._id,
+            file_name: file_name,
+            file_size: stats.size
+        };
+
+    } catch (error) {
+        console.error('[-] Error attaching file:', error.message);
+        
+        if (error.response) {
+            console.error('[-] API Error:', error.response.status, error.response.data);
+        }
+        
+        return {
+            success: false,
+            error: error.message
+        };
+    }
+}
+
+// Usage in n8n Code Node
+const config = {
+    thehive_url: 'http://thehive.sbihi.soar.ma',
+    api_key: 'HSTx8PnJZNVvHwYFGs+564VD7pfqsRAj',
+    alert_id: $json.alert_id || $input.first().json.alert_id,
+    file_path: $json.evidence_file || '/tmp/evidence.pcap',
+    file_name: $json.file_name || 'network_evidence.pcap',
+    description: `Evidence from ${$json.attack_type || 'unknown'} attack`
+};
+
+// Execute attachment
+const result = await attachFileToTheHive(config);
+
+// Return result for next node
+return [result];
+\end{lstlisting}
+
+\section{Script de Blocage OPNsense}
+
+\begin{lstlisting}[style=jsstyle,caption=Script n8n pour blocage automatique IP OPNsense]
+// n8n_opnsense_final.js - OPNsense automatic IP blocking
+
+const axios = require('axios');
+const crypto = require('crypto');
+
+class OPNsenseFirewall {
+    constructor(config) {
+        this.url = config.url;
+        this.apiKey = config.api_key;
+        this.apiSecret = config.api_secret;
+        this.aliasName = config.alias_name || 'Black_list';
+        
+        // Create authentication header
+        this.authHeader = 'Basic ' + Buffer.from(
+            `${this.apiKey}:${this.apiSecret}`
+        ).toString('base64');
+    }
+
+    async makeApiCall(endpoint, method = 'GET', data = null) {
+        const config = {
+            method: method,
+            url: `${this.url}${endpoint}`,
+            headers: {
+                'Authorization': this.authHeader,
+                'Content-Type': 'application/json'
+            },
+            timeout: 15000
+        };
+
+        if (data && method !== 'GET') {
+            config.data = data;
+        }
+
+        try {
+            const response = await axios(config);
+            return response.data;
+        } catch (error) {
+            console.error(`[-] API call failed for ${endpoint}:`, error.message);
+            throw error;
+        }
+    }
+
+    async getAliasId() {
+        try {
+            const aliases = await this.makeApiCall('/api/firewall/alias/searchItem');
+            
+            for (let alias of aliases.rows || []) {
+                if (alias.name === this.aliasName) {
+                    console.log(`[+] Found alias ${this.aliasName} with ID: ${alias.uuid}`);
+                    return alias.uuid;
+                }
+            }
+            
+            console.log(`[-] Alias ${this.aliasName} not found`);
+            return null;
+        } catch (error) {
+            console.error('[-] Error getting alias ID:', error.message);
+            throw error;
+        }
+    }
+
+    async getCurrentIPs(aliasId) {
+        try {
+            const aliasData = await this.makeApiCall(`/api/firewall/alias/getItem/${aliasId}`);
+            
+            if (aliasData.alias && aliasData.alias.content) {
+                const currentIPs = aliasData.alias.content.split(',')
+                    .map(ip => ip.trim())
+                    .filter(ip => ip.length > 0);
+                
+                console.log(`[+] Current IPs in blacklist: ${currentIPs.length}`);
+                return currentIPs;
+            }
+            
+            return [];
+        } catch (error) {
+            console.error('[-] Error getting current IPs:', error.message);
+            return [];
+        }
+    }
+
+    async blockIP(ipToBlock, reason = 'Automated SOAR blocking') {
+        try {
+            console.log(`[+] Starting IP blocking process for: ${ipToBlock}`);
+            
+            // Get alias ID
+            const aliasId = await this.getAliasId();
+            if (!aliasId) {
+                throw new Error(`Alias ${this.aliasName} not found`);
+            }
+
+            // Get current IPs
+            const currentIPs = await this.getCurrentIPs(aliasId);
+            
+            // Check if IP already blocked
+            if (currentIPs.includes(ipToBlock)) {
+                console.log(`[!] IP ${ipToBlock} already in blacklist`);
+                return {
+                    success: true,
+                    action: 'already_blocked',
+                    ip: ipToBlock,
+                    message: 'IP was already in blacklist'
+                };
+            }
+
+            // Add new IP to list
+            const updatedIPs = [...currentIPs, ipToBlock];
+            const payload = {
+                alias: {
+                    enabled: "1",
+                    name: this.aliasName,
+                    type: "host",
+                    content: updatedIPs.join(','),
+                    description: `Auto-managed blacklist - Last update: ${new Date().toISOString()}`
+                }
+            };
+
+            // Update alias
+            console.log('[+] Updating firewall alias...');
+            const updateResponse = await this.makeApiCall(
+                `/api/firewall/alias/setItem/${aliasId}`, 
+                'POST', 
+                payload
+            );
+
+            if (updateResponse.result !== 'saved') {
+                throw new Error(`Failed to update alias: ${updateResponse.result}`);
+            }
+
+            // Apply changes
+            console.log('[+] Applying firewall configuration...');
+            const applyResponse = await this.makeApiCall(
+                '/api/firewall/alias/reconfigure', 
+                'POST'
+            );
+
+            if (applyResponse.status !== 'ok') {
+                throw new Error(`Failed to apply configuration: ${applyResponse.status}`);
+            }
+
+            console.log(`[+] Successfully blocked IP: ${ipToBlock}`);
+            
+            // Log the action
+            const logEntry = {
+                timestamp: new Date().toISOString(),
+                action: 'ip_blocked',
+                ip: ipToBlock,
+                reason: reason,
+                total_blocked_ips: updatedIPs.length
+            };
+
+            return {
+                success: true,
+                action: 'blocked',
+                ip: ipToBlock,
+                total_ips: updatedIPs.length,
+                log: logEntry
+            };
+
+        } catch (error) {
+            console.error(`[-] Error blocking IP ${ipToBlock}:`, error.message);
+            
+            return {
+                success: false,
+                action: 'error',
+                ip: ipToBlock,
+                error: error.message
+            };
+        }
+    }
+
+    async unblockIP(ipToUnblock) {
+        try {
+            console.log(`[+] Starting IP unblocking process for: ${ipToUnblock}`);
+            
+            const aliasId = await this.getAliasId();
+            if (!aliasId) {
+                throw new Error(`Alias ${this.aliasName} not found`);
+            }
+
+            const currentIPs = await this.getCurrentIPs(aliasId);
+            
+            if (!currentIPs.includes(ipToUnblock)) {
+                console.log(`[!] IP ${ipToUnblock} not found in blacklist`);
+                return {
+                    success: true,
+                    action: 'not_found',
+                    ip: ipToUnblock
+                };
+            }
+
+            // Remove IP from list
+            const updatedIPs = currentIPs.filter(ip => ip !== ipToUnblock);
+            
+            const payload = {
+                alias: {
+                    enabled: "1",
+                    name: this.aliasName,
+                    type: "host",
+                    content: updatedIPs.join(','),
+                    description: `Auto-managed blacklist - Last update: ${new Date().toISOString()}`
+                }
+            };
+
+            // Update and apply
+            await this.makeApiCall(`/api/firewall/alias/setItem/${aliasId}`, 'POST', payload);
+            await this.makeApiCall('/api/firewall/alias/reconfigure', 'POST');
+
+            console.log(`[+] Successfully unblocked IP: ${ipToUnblock}`);
+            
+            return {
+                success: true,
+                action: 'unblocked',
+                ip: ipToUnblock,
+                total_ips: updatedIPs.length
+            };
+
+        } catch (error) {
+            console.error(`[-] Error unblocking IP ${ipToUnblock}:`, error.message);
+            
+            return {
+                success: false,
+                action: 'error',
+                ip: ipToUnblock,
+                error: error.message
+            };
+        }
+    }
+}
+
+// Main execution in n8n
+const opnsenseConfig = {
+    url: "http://192.168.181.1",
+    api_key: "YOUR_API_KEY",
+    api_secret: "YOUR_API_SECRET",
+    alias_name: "Black_list"
+};
+
+const firewall = new OPNsenseFirewall(opnsenseConfig);
+
+// Get IP to block from input
+const ipToBlock = $input.first().json.source_ip || $json.ip_address;
+const reason = $input.first().json.alert_description || 'SOAR automated blocking';
+
+if (!ipToBlock) {
+    return [{
+        success: false,
+        error: 'No IP address provided'
+    }];
+}
+
+// Validate IP format
+const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+if (!ipRegex.test(ipToBlock)) {
+    return [{
+        success: false,
+        error: `Invalid IP address format: ${ipToBlock}`
+    }];
+}
+
+// Execute blocking
+const result = await firewall.blockIP(ipToBlock, reason);
+
+// Return result
+return [result];
+\end{lstlisting}
+
+\chapter{Metriques et Resultats de Tests}
+
+\section{Tableau de Bord des Performances}
+
+\begin{table}[H]
+    \centering
+    \caption{Resultats des Tests de Performance par Scenario d'Attaque}
+    \begin{tabular}{|l|c|c|c|c|c|}
+        \hline
+        \textbf{Scenario}  & \textbf{Tests} & \textbf{Detectes} & \textbf{Taux}   & \textbf{Temps Moy.} & \textbf{Faux Pos.} \\
+        \hline
+        EternalBlue        & 15             & 14                & 93.3\%          & 2.3s                & 2                  \\
+        \hline
+        XSS Attacks        & 50             & 47                & 94.0\%          & 0.1s                & 5                  \\
+        \hline
+        Sites Malveillants & 100            & 85                & 85.0\%          & 1.8s                & 8                  \\
+        \hline
+        SSH Brute Force    & 25             & 24                & 96.0\%          & 0.5s                & 1                  \\
+        \hline
+        \textbf{TOTAL}     & \textbf{190}   & \textbf{170}      & \textbf{89.5\%} & \textbf{1.2s}       & \textbf{16}        \\
+        \hline
+    \end{tabular}
+\end{table}
+
+\section{Analyse des IOCs Collectes}
+
+\subsection{Indicateurs de Compromission EternalBlue}
+
+\begin{lstlisting}[style=jsstyle,caption=IOCs extraits lors des tests EternalBlue]
+{
+  "eternalblue_iocs": {
+    "attack_date": "2025-07-30T19:04:34Z",
+    "source_ip": "192.168.183.100",
+    "target_ip": "192.168.183.10",
+    "network_indicators": [
+      {
+        "type": "port_scan",
+        "protocol": "TCP",
+        "port": 445,
+        "packets": 127,
+        "description": "SMB port enumeration"
+      },
+      {
+        "type": "smb_negotiate",
+        "signature": "\\xff\\x53\\x4d\\x42\\x72",
+        "length": 47,
+        "description": "SMBv1 negotiate request"
+      },
+      {
+        "type": "exploit_packet",
+        "signature": "\\x00\\x00\\x00\\x2f\\xfe\\x53\\x4d\\x42",
+        "size": 2048,
+        "description": "EternalBlue buffer overflow"
+      }
+    ],
+    "file_indicators": [
+      {
+        "type": "hash",
+        "algorithm": "MD5",
+        "value": "c1d5cf8c43e7679b782eca6fdf9a5ad7",
+        "description": "EternalBlue payload"
+      },
+      {
+        "type": "hash", 
+        "algorithm": "SHA256",
+        "value": "ed01ebfbc9eb5bbea545af4d01bf5f1071661840480439c6e5babe8e080e41aa",
+        "description": "DoublePulsar backdoor"
+      }
+    ],
+    "process_indicators": [
+      {
+        "type": "process_creation",
+        "parent": "svchost.exe",
+        "child": "cmd.exe",
+        "command_line": "cmd.exe /c whoami",
+        "description": "Suspicious process spawn"
+      },
+      {
+        "type": "network_connection",
+        "process": "cmd.exe",
+        "destination": "192.168.183.100:4444",
+        "description": "Reverse shell connection"
+      }
+    ],
+    "timeline": [
+      "19:04:34 - Initial port scan",
+      "19:04:35 - SMBv1 service discovery", 
+      "19:04:36 - EternalBlue exploit launched",
+      "19:04:37 - Buffer overflow successful",
+      "19:04:38 - Shellcode execution",
+      "19:04:39 - DoublePulsar installation",
+      "19:04:40 - C2 communication established"
+    ]
+  }
+}
+\end{lstlisting}
+
+\chapter{Guides d'Installation}
+
+\section{Installation Automatisee}
+
+\begin{lstlisting}[style=bashstyle,caption=Script d'installation complete de la stack SOAR]
+#!/bin/bash
+# install_soar_stack.sh - Complete SOAR stack installation
+
+set -e
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+# Configuration
+INSTALL_DIR="/opt/soar"
+LOG_FILE="/var/log/soar_install.log"
+DOCKER_COMPOSE_VERSION="2.20.0"
+
+# Functions
+log() {
+    echo -e "${GREEN}[$(date +'%Y-%m-%d %H:%M:%S')] $1${NC}" | tee -a "$LOG_FILE"
+}
+
+error() {
+    echo -e "${RED}[ERROR] $1${NC}" | tee -a "$LOG_FILE"
+    exit 1
+}
+
+warning() {
+    echo -e "${YELLOW}[WARNING] $1${NC}" | tee -a "$LOG_FILE"
+}
+
+check_requirements() {
+    log "Checking system requirements..."
+    
+    # Check OS
+    if [[ ! -f /etc/os-release ]]; then
+        error "Unsupported operating system"
+    fi
+    
+    source /etc/os-release
+    if [[ "$ID" != "ubuntu" && "$ID" != "debian" ]]; then
+        warning "Untested OS: $ID. Proceeding anyway..."
+    fi
+    
+    # Check resources
+    MEMORY_GB=$(free -g | awk '/^Mem:/{print $2}')
+    if [[ $MEMORY_GB -lt 8 ]]; then
+        warning "Less than 8GB RAM detected. Performance may be affected."
+    fi
+    
+    DISK_GB=$(df -BG / | awk 'NR==2{print $4}' | sed 's/G//')
+    if [[ $DISK_GB -lt 50 ]]; then
+        error "Insufficient disk space. At least 50GB required."
+    fi
+    
+    log "System requirements check completed"
+}
+
+install_docker() {
+    log "Installing Docker..."
+    
+    if command -v docker &> /dev/null; then
+        log "Docker already installed: $(docker --version)"
+        return
+    fi
+    
+    # Update package index
+    apt-get update
+    
+    # Install prerequisites
+    apt-get install -y \
+        apt-transport-https \
+        ca-certificates \
+        curl \
+        gnupg \
+        lsb-release
+    
+    # Add Docker GPG key
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+    
+    # Add Docker repository
+    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+    
+    # Install Docker
+    apt-get update
+    apt-get install -y docker-ce docker-ce-cli containerd.io
+    
+    # Start and enable Docker
+    systemctl start docker
+    systemctl enable docker
+    
+    # Add user to docker group
+    usermod -aG docker $SUDO_USER
+    
+    log "Docker installation completed"
+}
+
+install_docker_compose() {
+    log "Installing Docker Compose..."
+    
+    if command -v docker-compose &> /dev/null; then
+        log "Docker Compose already installed: $(docker-compose --version)"
+        return
+    fi
+    
+    # Download Docker Compose
+    curl -L "https://github.com/docker/compose/releases/download/v${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+    
+    # Make executable
+    chmod +x /usr/local/bin/docker-compose
+    
+    # Create symlink
+    ln -sf /usr/local/bin/docker-compose /usr/bin/docker-compose
+    
+    log "Docker Compose installation completed"
+}
+
+setup_directories() {
+    log "Setting up directories..."
+    
+    # Create main directory
+    mkdir -p "$INSTALL_DIR"
+    cd "$INSTALL_DIR"
+    
+    # Create subdirectories
+    mkdir -p {wazuh,suricata,modsecurity,thehive,cortex,misp,n8n}
+    mkdir -p {logs,data,configs,scripts}
+    mkdir -p data/{wazuh,elasticsearch,cassandra,mysql,redis}
+    
+    # Set permissions
+    chown -R $SUDO_USER:$SUDO_USER "$INSTALL_DIR"
+    
+    log "Directory structure created"
+}
+
+configure_network() {
+    log "Configuring network settings..."
+    
+    # Create docker networks
+    docker network create --driver bridge soar-network --subnet=172.20.0.0/16 || true
+    docker network create --driver bridge wazuh-network --subnet=172.21.0.0/16 || true
+    
+    # Configure firewall (if UFW is available)
+    if command -v ufw &> /dev/null; then
+        ufw --force enable
+        ufw allow 22/tcp
+        ufw allow 9000/tcp  # TheHive
+        ufw allow 9001/tcp  # Cortex
+        ufw allow 5678/tcp  # n8n
+        ufw allow 443/tcp   # HTTPS
+        ufw allow 1514/tcp  # Wazuh
+        ufw allow 1515/tcp  # Wazuh
+    fi
+    
+    log "Network configuration completed"
+}
+
+deploy_wazuh() {
+    log "Deploying Wazuh SIEM..."
+    
+    cd "$INSTALL_DIR/wazuh"
+    
+    # Download Wazuh docker-compose
+    curl -so wazuh-docker.tar.gz https://packages.wazuh.com/4.7/wazuh-docker.tar.gz
+    tar -xvf wazuh-docker.tar.gz --strip-components=1
+    
+    # Generate certificates
+    docker-compose -f generate-indexer-certs.yml run --rm generator
+    
+    # Start Wazuh
+    docker-compose up -d
+    
+    # Wait for services
+    log "Waiting for Wazuh services to start..."
+    sleep 60
+    
+    log "Wazuh deployment completed"
+}
+
+deploy_soar_stack() {
+    log "Deploying SOAR stack..."
+    
+    cd "$INSTALL_DIR"
+    
+    # Create main docker-compose file
+    cat > docker-compose.yml << 'EOF'
+version: '3.8'
+
+networks:
+  soar-network:
+    external: true
+
+services:
+  # TheHive
+  cassandra:
+    image: cassandra:4.0
+    container_name: cassandra
+    environment:
+      - CASSANDRA_CLUSTER_NAME=thehive
+    volumes:
+      - ./data/cassandra:/var/lib/cassandra
+    networks:
+      - soar-network
+
+  elasticsearch:
+    image: elasticsearch:7.17.0
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+    volumes:
+      - ./data/elasticsearch:/usr/share/elasticsearch/data
+    networks:
+      - soar-network
+
+  thehive:
+    image: thehiveproject/thehive:5.2
+    container_name: thehive
+    depends_on:
+      - cassandra
+      - elasticsearch
+    ports:
+      - "9000:9000"
+    volumes:
+      - ./configs/thehive:/etc/thehive
+      - ./data/thehive:/opt/thp/thehive/data
+    networks:
+      - soar-network
+
+  # Cortex
+  cortex:
+    image: thehiveproject/cortex:3.1
+    container_name: cortex
+    depends_on:
+      - elasticsearch
+    ports:
+      - "9001:9001"
+    volumes:
+      - ./configs/cortex:/etc/cortex
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - soar-network
+
+  # MISP
+  redis:
+    image: redis:7.0
+    container_name: redis
+    volumes:
+      - ./data/redis:/data
+    networks:
+      - soar-network
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_DATABASE=misp
+      - MYSQL_USER=misp
+      - MYSQL_PASSWORD=example
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+    networks:
+      - soar-network
+
+  misp:
+    image: coolacid/misp-docker:core-latest
+    container_name: misp
+    depends_on:
+      - redis
+      - mysql
+    ports:
+      - "4432:80"
+    environment:
+      - MYSQL_HOST=mysql
+      - MYSQL_DATABASE=misp
+      - MYSQL_USER=misp
+      - MYSQL_PASSWORD=example
+      - REDIS_HOST=redis
+    networks:
+      - soar-network
+
+  # n8n
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_HOST=sbihi.soar.ma
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - NODE_ENV=production
+    volumes:
+      - ./data/n8n:/home/node/.n8n
+    networks:
+      - soar-network
+EOF
+
+    # Start SOAR stack
+    docker-compose up -d
+    
+    # Wait for services
+    log "Waiting for SOAR services to start..."
+    sleep 120
+    
+    log "SOAR stack deployment completed"
+}
+
+configure_integrations() {
+    log "Configuring integrations..."
+    
+    # Configure Wazuh integrations
+    WAZUH_CONFIG_PATH="$INSTALL_DIR/wazuh/single-node/config/wazuh_cluster/wazuh_manager.conf"
+    
+    if [[ -f "$WAZUH_CONFIG_PATH" ]]; then
+        # Add webhook integrations
+        cat >> "$WAZUH_CONFIG_PATH" << 'EOF'
+
+<!-- SOAR Integrations -->
+<integration>
+  <name>custom-eternalblue-webhook</name>
+  <hook_url>http://n8n:5678/webhook/eternalblue-alert</hook_url>
+  <level>10</level>
+  <group>eternalblue</group>
+  <alert_format>json</alert_format>
+</integration>
+
+<integration>
+  <name>custom-dns-integration</name>
+  <hook_url>http://n8n:5678/webhook/wazuh-sysmon</hook_url>
+  <level>3</level>
+  <group>sysmon_event_22</group>
+  <alert_format>json</alert_format>
+</integration>
+EOF
+        
+        # Restart Wazuh manager
+        docker restart wazuh.manager
+    fi
+    
+    log "Integration configuration completed"
+}
+
+install_additional_tools() {
+    log "Installing additional tools..."
+    
+    # Install monitoring tools
+    apt-get install -y htop iotop nethogs tcpdump wireshark-common
+    
+    # Install analysis tools
+    apt-get install -y jq curl wget git vim
+    
+    log "Additional tools installation completed"
+}
+
+create_service_scripts() {
+    log "Creating service management scripts..."
+    
+    cat > "$INSTALL_DIR/start_soar.sh" << 'EOF'
+#!/bin/bash
+echo "Starting SOAR Stack..."
+cd /opt/soar
+docker-compose up -d
+echo "SOAR Stack started successfully"
+EOF
+
+    cat > "$INSTALL_DIR/stop_soar.sh" << 'EOF'
+#!/bin/bash
+echo "Stopping SOAR Stack..."
+cd /opt/soar
+docker-compose down
+echo "SOAR Stack stopped"
+EOF
+
+    cat > "$INSTALL_DIR/status_soar.sh" << 'EOF'
+#!/bin/bash
+echo "SOAR Stack Status:"
+cd /opt/soar
+docker-compose ps
+echo ""
+echo "Resource Usage:"
+docker stats --no-stream
+EOF
+
+    chmod +x "$INSTALL_DIR"/*.sh
+    
+    log "Service scripts created"
+}
+
+perform_health_checks() {
+    log "Performing health checks..."
+    
+    # Check services
+    SERVICES=("thehive:9000" "cortex:9001" "n8n:5678" "misp:4432")
+    
+    for service in "${SERVICES[@]}"; do
+        IFS=':' read -r name port <<< "$service"
+        if curl -f http://localhost:$port/api/status &>/dev/null || curl -f http://localhost:$port &>/dev/null; then
+            log "$name service is healthy"
+        else
+            warning "$name service may not be fully ready"
+        fi
+    done
+    
+    log "Health checks completed"
+}
+
+display_summary() {
+    log "Installation completed successfully!"
+    echo ""
+    echo "=== SOAR Stack Access URLs ==="
+    echo "TheHive:  http://$(hostname -I | awk '{print $1}'):9000"
+    echo "Cortex:   http://$(hostname -I | awk '{print $1}'):9001"
+    echo "MISP:     http://$(hostname -I | awk '{print $1}'):4432"
+    echo "n8n:      http://$(hostname -I | awk '{print $1}'):5678"
+    echo "Wazuh:    https://$(hostname -I | awk '{print $1}'):443"
+    echo ""
+    echo "=== Default Credentials ==="
+    echo "TheHive:  admin@thehive.local / secret"
+    echo "Cortex:   admin@cortex.local / secret"  
+    echo "MISP:     admin@admin.test / admin"
+    echo "Wazuh:    admin / SecretPassword"
+    echo ""
+    echo "=== Management Commands ==="
+    echo "Start:    $INSTALL_DIR/start_soar.sh"
+    echo "Stop:     $INSTALL_DIR/stop_soar.sh"
+    echo "Status:   $INSTALL_DIR/status_soar.sh"
+    echo ""
+    echo "=== Log Location ==="
+    echo "Install Log: $LOG_FILE"
+    echo "Service Logs: $INSTALL_DIR/logs/"
+    echo ""
+    echo "Please reboot the system to ensure all changes take effect."
+}
+
+# Main installation process
+main() {
+    log "Starting SOAR stack installation..."
+    
+    # Check if running as root
+    if [[ $EUID -ne 0 ]]; then
+        error "This script must be run as root (use sudo)"
+    fi
+    
+    # Check if SUDO_USER is set
+    if [[ -z "$SUDO_USER" ]]; then
+        error "Please run this script with sudo, not as root directly"
+    fi
+    
+    check_requirements
+    install_docker
+    install_docker_compose
+    setup_directories
+    configure_network
+    deploy_wazuh
+    deploy_soar_stack
+    configure_integrations
+    install_additional_tools
+    create_service_scripts
+    perform_health_checks
+    display_summary
+    
+    log "Installation process completed successfully"
+}
+
+# Run main function
+main "$@"
+EOF
+
+chmod +x install_soar_stack.sh
+\end{lstlisting}
+
+\newpage

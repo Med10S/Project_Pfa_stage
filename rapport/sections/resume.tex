@@ -1,0 +1,57 @@
+\chapter*{Resume}
+\addcontentsline{toc}{chapter}{Resume}
+
+\vspace{1cm}
+
+\textbf{Contexte et Problematique}
+
+Les etablissements hospitaliers font face a des defis cybersecuritaires croissants dans un contexte de digitalisation acceleree de leurs systemes d'information. Les equipements medicaux connectes, les dossiers patients electroniques et les systemes critiques de gestion hospitaliere constituent des cibles privilegiees pour les cyberattaquants. La continuite de service etant vitale dans l'environnement medical, il est imperatif de disposer d'une capacite de detection et de reponse aux incidents de securite a la fois rapide et fiable.
+
+\vspace{0.5cm}
+
+\textbf{Objectifs du Projet}
+
+Ce projet de fin d'annee vise a concevoir et implementer une solution complete de Centre d'Operations de Securite (SOC) adaptee aux specificites hospitalieres. L'objectif principal est de creer une architecture SIEM/SOAR (Security Information and Event Management / Security Orchestration, Automation and Response) capable de detecter proactivement les cybermenaces, d'automatiser les reponses d'incidents et de maintenir la conformite reglementaire (HIPAA, RGPD).
+
+\vspace{0.5cm}
+
+\textbf{Methodologie et Architecture}
+
+L'architecture proposee s'articule autour de quatre couches fonctionnelles interconnectees :
+
+\begin{itemize}
+    \item \textbf{Couche de Detection} : Integration de Suricata (IDS/IPS reseau), Wazuh (SIEM central) et ModSecurity (WAF) pour une couverture de securite multi-niveaux
+    \item \textbf{Couche d'Analyse} : Deploiement de TheHive (gestion d'incidents), Cortex (analyses automatisees) et MISP (threat intelligence)
+    \item \textbf{Couche d'Orchestration} : Utilisation de n8n pour l'automatisation des workflows de reponse aux incidents
+    \item \textbf{Couche de Presentation} : Interfaces unifiees de monitoring et dashboards de pilotage
+\end{itemize}
+
+\vspace{0.5cm}
+
+\textbf{Realisations et Tests}
+
+L'implementation a ete validee par des tests d'intrusion controles portant sur trois categories d'attaques : l'exploitation EternalBlue (CVE-2017-0144), les attaques XSS (Cross-Site Scripting) et l'acces a des sites malveillants. Les resultats demontrent un taux de detection global de 90,9\% avec un temps de reponse moyen de 4,7 secondes.
+
+\vspace{0.5cm}
+
+\textbf{Contributions et Apports}
+
+Cette solution apporte plusieurs innovations significatives :
+\begin{itemize}
+    \item Automatisation de 59,4\% des incidents de securite grace aux playbooks SOAR
+    \item Reduction de 70\% du temps de reponse compare aux approches manuelles
+    \item Conformite aux standards de securite hospitaliere (HIPAA/RGPD)
+    \item Architecture evolutive compatible avec les infrastructures existantes
+\end{itemize}
+
+\vspace{0.5cm}
+
+\textbf{Perspectives}
+
+Les extensions futures incluent l'integration d'algorithmes d'apprentissage automatique pour la detection comportementale, l'amelioration de la detection des menaces avancees persistantes (APT) et l'extension de la solution a d'autres secteurs critiques.
+
+\vspace{1cm}
+
+\textbf{Mots-cles :} SIEM, SOAR, Cybersecurite hospitaliere, SOC, Detection d'intrusion, Automatisation de la reponse, TheHive, Wazuh, Threat Intelligence
+
+\newpage
