@@ -16,7 +16,8 @@
 % If using XeLaTeX/LuaLaTeX, inputenc is ignored; consider removing \usepackage{inputenc}
 \usepackage{xcolor}
 \usepackage{url}
-\usepackage{hyperref}
+% tocloft should be loaded before hyperref for proper link handling
+% (we move hyperref to the end of package list below)
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{amssymb}
@@ -29,6 +30,8 @@
 \usepackage{tocloft}
 \usepackage{appendix}
 \usepackage[style=numeric,backend=bibtex]{biblatex}
+% Load hyperref last
+\usepackage{hyperref}
 \usepackage{pifont}
 \newcommand{\cmark}{\ding{51}} % check mark
 \newcommand{\warning}{\ding{115}} % warning symbol alternative
@@ -78,11 +81,13 @@
     morestring=[b]",
     morestring=[b]',
 }
+% YAML language definition (safe version)
 \lstdefinelanguage{yaml}{
-    comment=[l]{#},
-    morestring=[b]",morestring=[b]',
+    comment=[l]{\#},
+    morestring=[b]",
+    morestring=[b]',
     keywords={true,false,null,yes,no},
-    sensitive=false,
+    sensitive=false
 }
 \lstset{
     backgroundcolor=\color{gray!10},
@@ -92,8 +97,7 @@
     captionpos=b,
     commentstyle=\color{green!40!black}\slshape,
     deletekeywords={...},
-    escapeinside={\%*}{*)},
-    extendedchars=true,
+    % (Removed escapeinside and extendedchars to prevent macro parsing issues)
     frame=leftline,
     framerule=4pt,
     keepspaces=true,
@@ -288,16 +292,22 @@
 \input{sections/abreviations}
 
 % ===== TABLE DES MATIÈRES =====
+\clearpage
+\setcounter{tocdepth}{3} % include subsections/subsubsections if needed
+\setcounter{secnumdepth}{3}
+\phantomsection
 \tableofcontents
-\newpage
+\clearpage
 
 % ===== LISTE DES FIGURES =====
+\phantomsection
 \listoffigures
-\newpage
+\clearpage
 
 % ===== LISTE DES TABLEAUX =====
+\phantomsection
 \listoftables
-\newpage
+\clearpage
 
 % ===== CHAPITRES PRINCIPAUX =====
 \input{sections/chapitre1_contexte}
