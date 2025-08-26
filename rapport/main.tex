@@ -14,7 +14,7 @@
 \usepackage{listings}
 \usepackage{csquotes} % Recommended with biblatex & babel
 % If using XeLaTeX/LuaLaTeX, inputenc is ignored; consider removing \usepackage{inputenc}
-\usepackage{xcolor}
+\usepackage[table]{xcolor}
 \usepackage{url}
 % tocloft should be loaded before hyperref for proper link handling
 % (we move hyperref to the end of package list below)
@@ -55,9 +55,17 @@
 \renewcommand{\footrulewidth}{0pt}
 
 % ===== CONFIGURATION DES TITRES =====
-\titleformat{\chapter}[hang]
+	\titleformat{\chapter}[hang]
 {\normalfont\LARGE\bfseries}{\thechapter}{1em}{}
-\titlespacing*{\chapter}{0pt}{-30pt}{20pt}
+	\titlespacing*{\chapter}{0pt}{-30pt}{20pt}
+% Harmoniser et réduire l'espace vertical surtout avant les subsubsections
+	\titleformat{\section}[hang]{\normalfont\Large\bfseries}{\thesection}{1em}{}
+	\titlespacing*{\section}{0pt}{2.5ex plus 1ex minus .2ex}{1.5ex plus .2ex}
+	\titleformat{\subsection}[hang]{\normalfont\large\bfseries}{\thesubsection}{1em}{}
+	\titlespacing*{\subsection}{0pt}{2.25ex plus 1ex minus .2ex}{1ex plus .2ex}
+	\titleformat{\subsubsection}[hang]{\normalfont\normalsize\bfseries}{\thesubsubsection}{1em}{}
+% Avant (before skip) réduit pour éviter grand espace constaté, après (after skip) compact
+	\titlespacing*{\subsubsection}{0pt}{1.2ex plus .5ex minus .2ex}{0.7ex plus .2ex}
 
 % ===== ESPACEMENT =====
 \onehalfspacing
@@ -122,7 +130,7 @@
 % Styles spécialisés pour différents langages
 \lstdefinestyle{xmlstyle}{
     language=XML,
-    backgroundcolor=\color{yellow!10},
+    backgroundcolor=\color{blue!10},
     keywordstyle=\color{purple}\bfseries,
     commentstyle=\color{green!50!black}\slshape,
     stringstyle=\color{red!70!black},
@@ -190,6 +198,7 @@
 \definecolor{soarblue}{RGB}{51,102,153}
 \definecolor{soargreen}{RGB}{102,153,51}
 \definecolor{soarred}{RGB}{153,51,51}
+\definecolor{greenOil}{RGB}{197,219,151}
 
 % ===== HYPERLIENS =====
 \hypersetup{
@@ -229,51 +238,69 @@
 
 % ===== PAGE DE TITRE =====
 \begin{titlepage}
+    \newgeometry{top=1cm, left=0cm, right=0cm, bottom=0cm}
     \centering
 
-    % Logo institution (à ajouter si disponible)
-    % \includegraphics[width=0.3\textwidth]{images/logo_institution.png}\\[1cm]
+    % Banner universitaire en haut au centre
+    \begin{minipage}{\textwidth}
+        \centering
 
-    \vspace{2cm}
+        % Image du banner universitaire
+        \includegraphics[]{images/USMBA_banner.jpg}
 
-    {\huge\bfseries Conception et Implémentation d'un Système SIEM/SOAR\par}
-    \vspace{1cm}
-    {\Large pour Centre d'Opérations de Sécurité Hospitalière\par}
 
-    \vspace{2cm}
-
-    {\Large\itshape Rapport de Projet de Fin d'Année (PFA)\par}
-
-    \vspace{2cm}
-
-    \begin{minipage}{0.4\textwidth}
-        \begin{flushleft} \large
-            \emph{Étudiant:}\\
-            \textbf{Med10S}
-        \end{flushleft}
-    \end{minipage}%
-    \begin{minipage}{0.4\textwidth}
-        \begin{flushright} \large
-            \emph{Encadrant:} \\
-            \textbf{[Nom Encadrant]}
-        \end{flushright}
+        % Ligne de séparation
     \end{minipage}
 
-    \vspace{2cm}
+    \vspace{4cm}    % Titre principal
+    {\Huge\bfseries Stage d’Application\par}
+    \vspace{0.5cm}
+    {\large\bfseries Élève Ingénieur en 2ème année\par}
+    \vspace{0.3cm}
+    {\large Génie Télécommunications et réseaux\par}
+    {\large Stage réalisé au sein du Centre Hospitalière Universitaire de Fes (CHU Fes)\par}
 
-    {\large Formation: Génie des Télécommunications et Réseaux (GTR)\par}
-    {\large Semestre 4 - Année 2024-2025\par}
+    \vspace{1.5cm}
 
+    % Titre du projet dans un encadré vert
+    \fcolorbox{black}{greenOil!30}{%
+        \begin{minipage}{0.8\textwidth}
+            \centering
+            \vspace{0.3cm}
+            {\Large\bfseries Conception et Implémentation d'une Solution SIEM/SOAR pour Centre d'Opérations de Sécurité Hospitalière}
+            \vspace{0.3cm}
+        \end{minipage}
+    }
+
+
+
+    % Année universitaire
     \vfill
+    {\large Période de stage 1/07/2024 au 31/8/2024\par}
+    % Section verte avec les informations des personnes
+    \fcolorbox{black}{greenOil!40}{%
+        \begin{minipage}{\textwidth}
+            \vspace{0.3cm}
+            \raggedright
+            \hspace{3.5cm}\textbf{Réalisé par :} \textbf{M. SBIHI MOHAMMED}\\
+            \vspace{2cm}
+            \hspace{3.5cm}\textbf{Encadrant ENSAF} \textbf{--------}\\
+            \vspace{0.2cm}
+            \hspace{3.5cm}\textbf{Encadrant Société } \textbf{--------}\\
+            \vspace{1cm}
+            \hspace{3.5cm}\textbf{Membres de jury :}\\
+            \hspace{4cm}\textbf{Pr. --------}\\
+            \hspace{4cm}\textbf{Pr. --------}\\
+            \vspace{2cm}
+        \end{minipage}
+    }
 
-    {\large Juillet 2025\par}
 
-    \vspace{1cm}
+    % Bannière inférieure avec logos
 
-    % Logo école (à ajouter si disponible)
-    % \includegraphics[width=0.2\textwidth]{images/logo_ecole.png}
 
 \end{titlepage}
+\restoregeometry
 
 % ===== NUMÉROTATION ARABE POUR TOUT LE DOCUMENT =====
 \pagenumbering{arabic}
@@ -293,7 +320,7 @@
 
 % ===== TABLE DES MATIÈRES =====
 \clearpage
-\setcounter{tocdepth}{3} % include subsections/subsubsections if needed
+\setcounter{tocdepth}{2} % include subsections/subsubsections if needed
 \setcounter{secnumdepth}{3}
 \phantomsection
 \tableofcontents
@@ -309,18 +336,18 @@
 \listoftables
 \clearpage
 
+\input{sections/introduction}
+
+% ===== STRUCTURE DU PROJET =====
+\input{sections/structure_projet}
 % ===== CHAPITRES PRINCIPAUX =====
 \input{sections/chapitre1_contexte}
 \input{sections/chapitre2_methodologie}
 \input{sections/chapitre3_implementation}
 \input{sections/chapitre4_tests}
-\input{sections/chapitre5_resultats}
 
 % ===== INTRODUCTION GÉNÉRALE =====
-\input{sections/introduction}
 
-% ===== STRUCTURE DU PROJET =====
-\input{sections/structure_projet}
 
 % ===== CONCLUSION GÉNÉRALE =====
 \input{sections/conclusion}
@@ -331,9 +358,6 @@
 % ===== BIBLIOGRAPHIE =====
 \printbibliography[title=Références Bibliographiques]
 
-% ===== ANNEXES =====
-\appendix
-\input{sections/annexes}
 
 % ===== GLOSSAIRE =====
 \input{sections/glossaire}

@@ -5,11 +5,9 @@
 \subsection{Cycle de Vie du Projet}
 
 Le developpement de notre solution SIEM/SOAR suit une approche iterative basee sur la methodologie DevSecOps, adaptee aux contraintes de securite et de disponibilite de l'environnement hospitalier.
-
 \subsubsection{Phases de Developpement}
-
 \begin{enumerate}
-    \item \textbf{Phase d'Analyse} (2 semaines)
+    \item \textbf{Phase d'Analyse} (1 semaines)
           \begin{itemize}
               \item Audit de l'infrastructure existante
               \item Identification des sources de logs
@@ -25,7 +23,7 @@ Le developpement de notre solution SIEM/SOAR suit une approche iterative basee s
               \item Specification des integrations API
           \end{itemize}
 
-    \item \textbf{Phase d'Implementation} (6 semaines)
+    \item \textbf{Phase d'Implementation} (3 semaines)
           \begin{itemize}
               \item Deploiement de l'infrastructure de base
               \item Configuration des connecteurs de donnees
@@ -33,7 +31,7 @@ Le developpement de notre solution SIEM/SOAR suit une approche iterative basee s
               \item Integration des composants SOAR
           \end{itemize}
 
-    \item \textbf{Phase de Tests} (3 semaines)
+    \item \textbf{Phase de Tests} (2 semaines)
           \begin{itemize}
               \item Tests de charge et performance
               \item Validation des scenarios d'attaque
@@ -41,27 +39,12 @@ Le developpement de notre solution SIEM/SOAR suit une approche iterative basee s
               \item Audit de securite externe
           \end{itemize}
 
-    \item \textbf{Phase de Deploiement} (2 semaines)
-          \begin{itemize}
-              \item Migration progressive en production
-              \item Formation des equipes operationnelles
-              \item Documentation technique complete
-              \item Monitoring post-deploiement
-          \end{itemize}
+
 \end{enumerate}
+\clearpage
 
 \subsection{Methodologie de Securite}
 
-\subsubsection{Security by Design}
-
-L'approche "Security by Design" est integree des la conception :
-
-\begin{itemize}
-    \item \textbf{Principe de moindre privilege} : Acces minimal necessaire pour chaque composant
-    \item \textbf{Defense en profondeur} : Multiples couches de securite redondantes
-    \item \textbf{Fail-safe defaults} : Configuration securisee par defaut
-    \item \textbf{Separation des preoccupations} : Isolation des environnements critiques
-\end{itemize}
 
 \subsubsection{Framework NIST Cybersecurity}
 
@@ -117,38 +100,16 @@ Pour une comprehension initiale, la figure \ref{fig:flow_simple} presente une vu
     \label{fig:flow_simple}
 \end{figure}
 
-\subsubsection{Flux de Donnees Complexe}
-
-La figure \ref{fig:flow_complex} detaille l'ensemble des interactions et des traitements automatises :
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.95\textwidth]{images/flowData_Complex.png}
-    \caption{Diagramme de flux de donnees complexe - Vue detaillee des processus d'automatisation}
-    \label{fig:flow_complex}
-\end{figure}
-
-Ce diagramme complexe montre comment les alertes du SIEM sont automatiquement traitees par le SOAR, enrichies avec de l'intelligence sur les menaces, et transformees en actions de reponse automatisees.
-
 \subsubsection{Couche de Collecte de Donnees}
 
 \paragraph{Sources de Donnees}
 \begin{enumerate}
     \item \textbf{Logs Systeme}
           \begin{itemize}
-              \item Serveurs Windows (Event Logs)
-              \item Serveurs Linux (Syslog, journald)
-              \item Equipements reseau (SNMP, NetFlow)
-              \item Bases de donnees (Audit logs)
+              \item Serveurs Windows ( Sysmon, WazuhAgent)
+              \item Serveurs Linux (WazuhAgent)
           \end{itemize}
 
-    \item \textbf{Logs Applicatifs}
-          \begin{itemize}
-              \item SIH (Systeme d'Information Hospitalier)
-              \item PACS (Picture Archiving and Communication System)
-              \item Applications web medicales
-              \item Systemes de messagerie
-          \end{itemize}
 
     \item \textbf{Logs de Securite}
           \begin{itemize}
@@ -162,8 +123,6 @@ Ce diagramme complexe montre comment les alertes du SIEM sont automatiquement tr
           \begin{itemize}
               \item Threat Intelligence (MISP feeds)
               \item Vulnerabilites (NIST NVD)
-              \item Asset inventory (CMDB)
-              \item Configuration management
           \end{itemize}
 \end{enumerate}
 
@@ -203,15 +162,6 @@ Les regles de correlation sont developpees pour detecter les attaques specifique
     <description>EternalBlue: SMB exploit attempt from external IP</description>
     <group>attack.lateral_movement,attack.t1055</group>
   </rule>
-  
-  <!-- Process injection after SMB connection -->
-  <rule id="100002" level="13">
-    <if_matched_sid>100001</if_matched_sid>
-    <same_source_ip />
-    <time>same_minute</time>
-    <description>EternalBlue: Process injection detected</description>
-    <group>attack.privilege_escalation,attack.t1055</group>
-  </rule>
 </group>
 \end{lstlisting}
 
@@ -225,13 +175,7 @@ Les regles de correlation sont developpees pour detecter les attaques specifique
     \item Correlation avec listes de reputation IP
 \end{itemize}
 
-\paragraph{Asset Context}
-\begin{itemize}
-    \item Enrichissement avec donnees CMDB
-    \item Classification de criticite des assets
-    \item Mapping avec utilisateurs et services
-    \item Contexte business des systemes impactes
-\end{itemize}
+
 
 \subsection{Couche d'Orchestration SOAR}
 
@@ -252,15 +196,12 @@ Les regles de correlation sont developpees pour detecter les attaques specifique
               \item Classification par type d'attaque (MITRE ATT\&CK)
               \item Scoring de criticite base sur asset et TTP
               \item Assignment automatique selon expertise equipe
-              \item Escalade basee sur SLA predefinis
           \end{itemize}
 
     \item \textbf{Enrichissement Contextuel}
           \begin{itemize}
               \item Recherche historique d'incidents similaires
               \item Correlation avec threat intelligence MISP
-              \item Analyse comportementale utilisateur (UEBA)
-              \item Evaluation d'impact business
           \end{itemize}
 
     \item \textbf{Reponse Automatisee}
@@ -280,19 +221,13 @@ Les regles de correlation sont developpees pour detecter les attaques specifique
     \caption{Analyzers Cortex configures pour l'environnement hospitalier}
     \begin{tabular}{|l|l|c|l|}
         \hline
-        \textbf{Type} & \textbf{Analyzer} & \textbf{SLA} & \textbf{Cas d'Usage}       \\
+        \textbf{Type} & \textbf{Analyzer} & \textbf{SLA} & \textbf{Cas d'Usage}    \\
         \hline
-        IP            & VirusTotal        & 30s          & Reputation IP externe      \\
+        IP            & VirusTotal        & 30s          & Reputation IP externe   \\
         \hline
-        IP            & AbuseIPDB         & 15s          & Detection IP malveillantes \\
+        URL           & Joe Sandbox       & 5min         & Analyse comportementale \\
         \hline
-        Hash          & Hybrid Analysis   & 2min         & Analyse malware sandbox    \\
-        \hline
-        Domain        & PassiveTotal      & 20s          & Infrastructure adversaire  \\
-        \hline
-        URL           & Joe Sandbox       & 5min         & Analyse comportementale    \\
-        \hline
-        Email         & DMARC Analyzer    & 10s          & Validation authenticity    \\
+        Email         & DMARC Analyzer    & 10s          & Validation authenticity \\
         \hline
     \end{tabular}
 \end{table}
@@ -300,8 +235,6 @@ Les regles de correlation sont developpees pour detecter les attaques specifique
 \paragraph{Responders Personnalises}
 \begin{itemize}
     \item \textbf{OPNsense IP Block} : Blocage automatique au niveau firewall
-    \item \textbf{Active Directory Disable} : Desactivation compte utilisateur
-    \item \textbf{Email Quarantine} : Mise en quarantaine email malveillant
     \item \textbf{MISP Event Creation} : Publication IOC vers communaute
 \end{itemize}
 
@@ -333,7 +266,6 @@ Les regles de correlation sont developpees pour detecter les attaques specifique
               \item Trigger : ModSecurity WAF block
               \item Actions : Analyse payload + bloc IP + notification developpeur
               \item SLA : Traitement en < 30 secondes
-              \item Learning : Machine learning pour amelioration detection
           \end{itemize}
 
     \item \textbf{Workflow Malicious Website}
@@ -421,19 +353,19 @@ Les regles de correlation sont developpees pour detecter les attaques specifique
         \hline
         \textbf{Composant} & \textbf{CPU}     & \textbf{RAM}   & \textbf{Storage} & \textbf{Network} \\
         \hline
-        Wazuh Manager      & 8 vCPU           & 16 GB          & 500 GB SSD       & 10 Gbps          \\
+        Wazuh Manager      & 4vCPU            & 4 GB           & 5 GB NVMe        & 10 Gbps          \\
         \hline
-        Wazuh Indexer (x3) & 4 vCPU           & 32 GB          & 2 TB NVMe        & 10 Gbps          \\
+        Wazuh Indexer      & 2 vCPU           & 2 GB           & 5 GB NVMe        & 10 Gbps          \\
         \hline
-        TheHive            & 4 vCPU           & 8 GB           & 200 GB SSD       & 1 Gbps           \\
+        TheHive            & 2 vCPU           & 1 GB           & 5 GB NVMe        & 1 Gbps           \\
         \hline
-        Cortex             & 8 vCPU           & 16 GB          & 500 GB SSD       & 1 Gbps           \\
+        Cortex             & 2 vCPU           & 2 GB           & 5 GB NVMe        & 1 Gbps           \\
         \hline
-        MISP               & 2 vCPU           & 4 GB           & 100 GB SSD       & 1 Gbps           \\
+        MISP               & 2 vCPU           & 2 GB           & 5 GB NVMe        & 1 Gbps           \\
         \hline
-        n8n                & 2 vCPU           & 4 GB           & 50 GB SSD        & 1 Gbps           \\
+        n8n                & 2 vCPU           & 3 GB           & 5 GB NVMe        & 1 Gbps           \\
         \hline
-        \textbf{Total}     & \textbf{30 vCPU} & \textbf{84 GB} & \textbf{3.85 TB} & \textbf{-}       \\
+        \textbf{Total}     & \textbf{14 vCPU} & \textbf{14 GB} & \textbf{30 GB}   & \textbf{-}       \\
         \hline
     \end{tabular}
 \end{table}
@@ -452,7 +384,6 @@ Les regles de correlation sont developpees pour detecter les attaques specifique
 \begin{enumerate}
     \item HOSPITAL → DMZ SIEM : Syslog (514/UDP), Wazuh Agent (1514/TCP)
     \item DMZ SIEM → LAN SOAR : Elasticsearch (9200/TCP), TheHive API (9000/TCP)
-    \item LAN SOAR → Internet : Threat Intel feeds (443/TCP), DNS (53/UDP)
     \item MGMT → All : SSH (22/TCP), SNMP (161/UDP), HTTPS (443/TCP)
 \end{enumerate}
 

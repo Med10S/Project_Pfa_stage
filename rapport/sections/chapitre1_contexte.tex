@@ -10,7 +10,6 @@ Le secteur de la sante represente aujourd'hui l'une des cibles privilegiees des 
     \item \textbf{Criticite des donnees} : Les dossiers medicaux electroniques (EMR) contiennent des informations hautement sensibles
     \item \textbf{Continuite de service} : L'impossibilite d'interrompre les soins met les hopitaux en position de faiblesse
     \item \textbf{Infrastructure complexe} : Interconnexion de systemes heterogenes (PACS, SIS, equipements biomedicaux)
-    \item \textbf{Contraintes reglementaires} : Conformite RGPD, HDS, et normes de securite sanitaire
 \end{itemize}
 
 \subsection{Specificites de l'Environnement Hospitalier}
@@ -35,18 +34,6 @@ L'infrastructure hospitaliere integre :
     \item \textbf{Interoperabilite} : Communication entre systemes de differents editeurs
 \end{itemize}
 
-\subsection{Topologie Reseau Hospitaliere}
-
-La figure \ref{fig:network_topology} illustre la complexite de l'architecture reseau d'un etablissement hospitalier moderne, montrant l'interconnexion des differents systemes et les flux de donnees critiques.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\textwidth]{images/network_topology.png}
-    \caption{Topologie reseau hospitaliere - Vue d'ensemble de l'infrastructure}
-    \label{fig:network_topology}
-\end{figure}
-
-Cette architecture met en evidence les points de vulnerabilite et les zones critiques necessitant une surveillance renforcee. La segmentation reseau et la mise en place de points de controle sont essentielles pour assurer la securite de l'ensemble du systeme.
 
 \section{Analyse des Menaces Specifiques}
 
@@ -86,6 +73,7 @@ Les equipements biomedicaux connectes presentent des vulnerabilites specifiques 
     \item \textbf{Mots de passe par defaut} : Configurations d'usine non modifiees
     \item \textbf{Absence de monitoring} : Equipements isoles des systemes de surveillance
 \end{itemize}
+\clearpage
 
 \subsection{Vecteurs d'Attaque Identifies}
 
@@ -95,8 +83,6 @@ L'analyse des incidents de securite dans notre environnement de test a permis d'
 \begin{enumerate}
     \item \textbf{Exploitation de vulnerabilites SMB} : EternalBlue (MS17-010), BluekeepSafe (CVE-2019-0708)
     \item \textbf{Attaques par deni de service} : Saturation des equipements critiques
-    \item \textbf{Man-in-the-middle} : Interception de communications medicales non chiffrees
-    \item \textbf{Lateral movement} : Propagation horizontale apres compromission initiale
 \end{enumerate}
 
 \paragraph{Attaques Applicatives}
@@ -104,7 +90,6 @@ L'analyse des incidents de securite dans notre environnement de test a permis d'
     \item \textbf{Injection SQL} : Compromission des bases de donnees patient
     \item \textbf{Cross-Site Scripting (XSS)} : Vol de sessions utilisateur
     \item \textbf{Injection de commandes} : Execution de code arbitraire
-    \item \textbf{Elevation de privileges} : Compromission de comptes administrateur
 \end{enumerate}
 
 \section{Etat de l'Art des Solutions SIEM/SOAR}
@@ -156,7 +141,7 @@ Les plateformes SOAR (Security Orchestration, Automation and Response) permetten
     \item Gestion collaborative des incidents de securite
     \item Workflows personnalisables pour differents types d'alertes
     \item Integration native avec Cortex pour l'analyse automatisee
-    \item API REST complete pour l'integration avec les SIEM
+    \item API complete pour l'integration avec les SIEM
 \end{itemize}
 
 \paragraph{Cortex}
@@ -164,7 +149,6 @@ Les plateformes SOAR (Security Orchestration, Automation and Response) permetten
     \item Plateforme d'analyse d'observables et d'artifacts
     \item Bibliotheque de plus de 100 analyzers
     \item Responders pour automatiser les actions de reponse
-    \item Support des formats STIX/TAXII pour le partage de CTI
 \end{itemize}
 
 \paragraph{MISP}
@@ -184,7 +168,6 @@ Ce projet vise a concevoir et implementer une solution SIEM/SOAR adaptee aux spe
 \begin{enumerate}
     \item \textbf{Detection Precoce} : Identifier les menaces dans les 5 premieres secondes
     \item \textbf{Reponse Automatisee} : Contenir 80\% des incidents sans intervention humaine
-    \item \textbf{Conformite Reglementaire} : Respecter les exigences RGPD et HDS
     \item \textbf{Continuite de Service} : Maintenir la disponibilite des systemes critiques
     \item \textbf{Integration Transparente} : S'adapter a l'infrastructure existante
 \end{enumerate}
@@ -227,8 +210,6 @@ Ce projet vise a concevoir et implementer une solution SIEM/SOAR adaptee aux spe
         Disponibilite systeme     & > 99.9\%              & Monitoring Nagios          \\
         \hline
         Couverture MITRE ATT\&CK  & > 80\%                & Mapping des regles         \\
-        \hline
-        Satisfaction utilisateur  & > 4/5                 & Enquete trimestrielle      \\
         \hline
     \end{tabular}
 \end{table}
