@@ -1,8 +1,8 @@
 # 🛡️ CyberSecurity SIEM/SOAR Platform
 ## Plateforme de Détection et d'Orchestration d'Incidents de Sécurité
 
-> **Projet d'Étude - Med10S**  
-> Mise à jour : Août 2025  
+> **Projet d'Étude - Mohammed sbihi**  
+> Mise à jour : 27 Août 2025  
 > Architecture SOAR complète pour la détection et la réponse automatisée aux incidents de sécurité
 
 ---
