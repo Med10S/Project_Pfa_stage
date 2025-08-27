@@ -157,9 +157,9 @@ Les erreurs de compilation sont généralement dues à :
 
 ### Contact
 Pour toute question sur le rapport ou le projet SOAR :
-- Auteur : Med10S (GTR S4)
+- Auteur : Mohammed sbihi (GTR S4)
 - Encadrement : Équipe pédagogique GTR
-- Institution : École Supérieure de Technologie
+- Institution : ENSAF
 
 ## Licence et Utilisation
 
