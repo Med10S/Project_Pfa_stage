@@ -195,12 +195,12 @@ Projet éducatif - Usage libre à des fins de recherche et d'apprentissage.
 | [Architecture](./01_ARCHITECTURE/) | Diagrammes et topologie | ✅ Complet |
 | [Détection](./02_DETECTION_LAYER/) | Configuration des outils de détection | ✅ Complet |
 | [SOAR Stack](./03_SOAR_STACK/) | TheHive, Cortex, MISP | ✅ Complet |
-| [Attaques](./04_ATTACK_SCENARIOS/) | Scénarios de test | 🚧 En cours |
+| [Attaques](./04_ATTACK_SCENARIOS/) | Scénarios de test | ✅ Complet |
 | [Intégrations](./05_INTEGRATIONS/) | APIs et webhooks | ✅ Complet |
 | [Déploiement](./06_DEPLOYMENT/) | Installation et config | ✅ Complet |
-| [Documentation](./07_DOCUMENTATION/) | Guides utilisateur | 🚧 En cours |
+| [Documentation](./07_DOCUMENTATION/) | Guides utilisateur | ✅ Complet |
 
 > **Note** : Cette documentation est mise à jour régulièrement. Consultez le changelog pour les dernières modifications.
 
 ---
-**Développé par Med10S** - Projet d'Étude en Cybersécurité - 2025
+**Développé par Mohammed Sbihi** - Projet d'Étude en Cybersécurité - 2025
