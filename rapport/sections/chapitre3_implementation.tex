@@ -9,63 +9,63 @@
 L'environnement de laboratoire a ete concu pour reproduire fidelement l'ecosysteme hospitalier tout en permettant des tests d'intrusion controles.
 
 \begin{table}[H]
-    \centering
-    \caption{Mapping de l'environnement de laboratoire}
-    \begin{tabular}{|l|l|c|l|}
-        \hline
-        \textbf{Segment} & \textbf{Reseau}  & \textbf{Role}             & \textbf{Composants}     \\
-        \hline
-        Production       & 192.168.15.0/24  & Environnement hospitalier & SIH, PACS, Workstations \\
-        \hline
-        Attaquant        & 192.168.183.0/24 & Red Team                  & Kali Linux, Metasploit  \\
-        \hline
-        SIEM/SOAR        & 192.168.3.0/24   & Blue Team                 & Wazuh, TheHive, Cortex  \\
-        \hline
-        Internet         & 192.168.3.0/24   & Simulation WAN            & Malicious websites      \\
-        \hline
-        Defense          & 192.168.181.0/24 & Firewall                  & pfSense , modsecurity   \\
-        \hline
-    \end{tabular}
+  \centering
+  \caption{Mapping de l'environnement de laboratoire}
+  \begin{tabular}{|l|l|c|l|}
+    \hline
+    \textbf{Segment} & \textbf{Reseau}  & \textbf{Role}             & \textbf{Composants}     \\
+    \hline
+    Production       & 192.168.15.0/24  & Environnement hospitalier & SIH, PACS, Workstations \\
+    \hline
+    Attaquant        & 192.168.183.0/24 & Red Team                  & Kali Linux, Metasploit  \\
+    \hline
+    SIEM/SOAR        & 192.168.15.0/24  & Blue Team                 & Wazuh, TheHive, Cortex  \\
+    \hline
+    Internet         & 192.168.182.0/24 & Simulation WAN            & Malicious websites      \\
+    \hline
+    Defense          & 192.168.181.0/24 & Firewall                  & pfSense , modsecurity   \\
+    \hline
+  \end{tabular}
 \end{table}
 
 \subsubsection{Scenarios de Simulation}
 
 \paragraph{Environnement Hospitalier Simule}
 \begin{enumerate}
-    \item \textbf{Serveur SIH} (192.168.15.10)
-          \begin{itemize}
-              \item Windows Server 2019 avec IIS
-              \item Application web de gestion patient
-              \item Base de donnees SQL Server
-              \item Partages SMB pour documents medicaux
-          \end{itemize}
+  \item \textbf{Serveur SIH} (192.168.15.10)
+        \begin{itemize}
+          \item Windows Server 2019 avec IIS
+          \item Application web de gestion patient
+          \item Base de donnees SQL Server
+          \item Partages SMB pour documents medicaux
+        \end{itemize}
 
-    \item \textbf{Serveur PACS} (192.168.15.20)
-          \begin{itemize}
-              \item Windows Server 2016 vulnerable (MS17-010)
-              \item Service DICOM pour imagerie medicale
-              \item Stockage d'images radiologiques
-              \item Protocoles non chiffres (test)
-          \end{itemize}
+  \item \textbf{Serveur PACS} (192.168.15.20)
+        \begin{itemize}
+          \item Windows Server 2016 vulnerable (MS17-010)
+          \item Service DICOM pour imagerie medicale
+          \item Stockage d'images radiologiques
+          \item Protocoles non chiffres (test)
+        \end{itemize}
 
-    \item \textbf{Postes Utilisateurs} (192.168.15.30-50)
-          \begin{itemize}
-              \item Windows 10 avec agents Wazuh
-              \item Applications medicales courantes
-              \item Navigateurs web (tests XSS)
-              \item Acces reseau standard
-          \end{itemize}
+  \item \textbf{Postes Utilisateurs} (192.168.15.30-50)
+        \begin{itemize}
+          \item Windows 10 avec agents Wazuh
+          \item Applications medicales courantes
+          \item Navigateurs web (tests XSS)
+          \item Acces reseau standard
+        \end{itemize}
 \end{enumerate}
 
 \paragraph{Infrastructure d'Attaque}
 \begin{enumerate}
-    \item \textbf{Kali Linux Attacker} (192.168.183.2)
-          \begin{itemize}
-              \item Framework Metasploit pour EternalBlue
-              \item Outils de scan reseau (Nmap, Masscan)
-              \item Payloads personnalises
-              \item Scripts d'automatisation d'attaque
-          \end{itemize}
+  \item \textbf{Kali Linux Attacker} (192.168.183.2)
+        \begin{itemize}
+          \item Framework Metasploit pour EternalBlue
+          \item Outils de scan reseau (Nmap, Masscan)
+          \item Payloads personnalises
+          \item Scripts d'automatisation d'attaque
+        \end{itemize}
 
 \end{enumerate}
 
@@ -210,13 +210,13 @@ SecRule IP:REQUEST_COUNT "@gt 50" \
 \end{lstlisting}
 
 \begin{itemize}
-    \item \textbf{title} : Titre normalise de la phase d'attaque.
-    \item \textbf{description} : Corps riche (Markdown) listant details techniques et actions recommandees.
-    \item \textbf{date} : Horodatage source (timestamp de l'evenement original).
-    \item \textbf{tags} : Mots cles facilitant la priorisation et la recherche (phase, protocole, type d'exploitation).
-    \item \textbf{type} : Categorie fonctionnelle de l'incident (ici "eternalblue").
-    \item \textbf{source} / \textbf{sourceRef} : Origine de l'alerte (moteur de detection) et identifiant de correlation.
-    \item \textbf{additionalFields} : Conteneur extensible pour des meta‑donnees specifiques (initialement vide, peut recevoir criticite, SLA, proprietaire, etc.).
+  \item \textbf{title} : Titre normalise de la phase d'attaque.
+  \item \textbf{description} : Corps riche (Markdown) listant details techniques et actions recommandees.
+  \item \textbf{date} : Horodatage source (timestamp de l'evenement original).
+  \item \textbf{tags} : Mots cles facilitant la priorisation et la recherche (phase, protocole, type d'exploitation).
+  \item \textbf{type} : Categorie fonctionnelle de l'incident (ici "eternalblue").
+  \item \textbf{source} / \textbf{sourceRef} : Origine de l'alerte (moteur de detection) et identifiant de correlation.
+  \item \textbf{additionalFields} : Conteneur extensible pour des meta‑donnees specifiques (initialement vide, peut recevoir criticite, SLA, proprietaire, etc.).
 \end{itemize}
 
 \paragraph{Workflows Automatises Specialises}
@@ -228,17 +228,17 @@ L'orchestration automatisee des reponses aux incidents EternalBlue est geree par
 
 \textbf{Architecture du workflow :}
 \begin{itemize}
-    \item \textbf{Trigger} : Webhook HTTP POST depuis Suricata lors de detection EternalBlue
-    \item \textbf{Creation de cas} : Generation automatique d'incident TheHive avec metadonnees hospitalieres
-    \item \textbf{Reponse automatisee} : Actions de mitigation selon la criticite (isolation, blocage IP, notification medicale)
+  \item \textbf{Trigger} : Webhook HTTP POST depuis Suricata lors de detection EternalBlue
+  \item \textbf{Creation de cas} : Generation automatique d'incident TheHive avec metadonnees hospitalieres
+  \item \textbf{Reponse automatisee} : Actions de mitigation selon la criticite (isolation, blocage IP, notification medicale)
 \end{itemize}
 
 \textbf{Flux de traitement :}
 \begin{enumerate}
-    \item Reception de l'alerte Suricata via webhook
-    \item Creation du cas TheHive avec observables
-    \item Declenchement des actions de reponse appropriees
-    \item Notification des equipes medicales
+  \item Reception de l'alerte Suricata via webhook
+  \item Creation du cas TheHive avec observables
+  \item Declenchement des actions de reponse appropriees
+  \item Notification des equipes medicales
 \end{enumerate}
 
 \section{Integration des Composants}
@@ -251,33 +251,33 @@ Pour la chaine EternalBlue, c'est \textbf{Suricata} qui assure la detection rese
 
 \paragraph{Scripts d'extraction et de correlation EternalBlue}
 \begin{itemize}
-    \item \texttt{Suricta/eternalblue\_soar\_unified.sh} : script unifie (v4.0) lisant \texttt{eve.json}, mappant les IDs de regles aux phases (PHASE\_1... PHASE\_3, CORRELATION\_*), dedoublonnant les sessions (suivi src/dst), analysant la progression, recherchant ou re-extrayant les PCAP (fenetre variable jusqu'a 60s), testant l'integrite (tcpdump), produisant une charge JSON enrichie (phase, statut, priorite) et envoyant un webhook HTTP vers n8n (variable \texttt{N8N\_WEBHOOK}).
-    \item \texttt{Suricta/intelligent-extractor.service} : unit systemd demarrant le script apres \texttt{suricata.service}, assure redemarrage automatique et passe l'URL du webhook (Environment=). Garantit la resilience apres reboot.
+  \item \texttt{Suricta/eternalblue\_soar\_unified.sh} : script unifie (v4.0) lisant \texttt{eve.json}, mappant les IDs de regles aux phases (PHASE\_1... PHASE\_3, CORRELATION\_*), dedoublonnant les sessions (suivi src/dst), analysant la progression, recherchant ou re-extrayant les PCAP (fenetre variable jusqu'a 60s), testant l'integrite (tcpdump), produisant une charge JSON enrichie (phase, statut, priorite) et envoyant un webhook HTTP vers n8n (variable \texttt{N8N\_WEBHOOK}).
+  \item \texttt{Suricta/intelligent-extractor.service} : unit systemd demarrant le script apres \texttt{suricata.service}, assure redemarrage automatique et passe l'URL du webhook (Environment=). Garantit la resilience apres reboot.
 \end{itemize}
 
 \paragraph{Architecture d'integration}
 \begin{itemize}
-    \item \textbf{Suricata + Scripts} : Detection SMB + extraction / correlation + webhook JSON (EternalBlue).
-    \item \textbf{Wazuh Webhooks} : Complement host / processus (autres familles d'incidents).
-    \item \textbf{Workflows n8n} : Normalisation, enrichment (CTI, contexte asset) et routage.
-    \item \textbf{API TheHive} : Creation de cas, ajout d'observables.
-    \item \textbf{Cortex} : Analyse automatisee (hash, IP, URL) declenchee depuis TheHive.
+  \item \textbf{Suricata + Scripts} : Detection SMB + extraction / correlation + webhook JSON (EternalBlue).
+  \item \textbf{Wazuh Webhooks} : Complement host / processus (autres familles d'incidents).
+  \item \textbf{Workflows n8n} : Normalisation, enrichment (CTI, contexte asset) et routage.
+  \item \textbf{API TheHive} : Creation de cas, ajout d'observables.
+  \item \textbf{Cortex} : Analyse automatisee (hash, IP, URL) declenchee depuis TheHive.
 \end{itemize}
 
 \paragraph{Flux d'integration EternalBlue}
 \begin{enumerate}
-    \item Suricata genere une alerte (ID regle SMB) ecrite dans \texttt{eve.json}.
-    \item \texttt{eternalblue\_soar\_unified.sh} corrige/associe la phase, met a jour la correlation, extrait ou re-utilise un PCAP.
-    \item Le script envoie un webhook JSON vers n8n (phase, priorite, statut progression, chemin PCAP).
-    \item n8n cree / met a jour un cas TheHive (template incident) et ajoute observables (IPs, signature SMB, hash PCAP si calcule).
-    \item TheHive appelle Cortex pour enrichment (reputation IP, sandbox hash).
-    \item n8n peut declencher un blocage (OPNsense alias) suivant la priorite.
+  \item Suricata genere une alerte (ID regle SMB) ecrite dans \texttt{eve.json}.
+  \item \texttt{eternalblue\_soar\_unified.sh} corrige/associe la phase, met a jour la correlation, extrait ou re-utilise un PCAP.
+  \item Le script envoie un webhook JSON vers n8n (phase, priorite, statut progression, chemin PCAP).
+  \item n8n cree / met a jour un cas TheHive (template incident) et ajoute observables (IPs, signature SMB, hash PCAP si calcule).
+  \item TheHive appelle Cortex pour enrichment (reputation IP, sandbox hash).
+  \item n8n peut declencher un blocage (OPNsense alias) suivant la priorite.
 \end{enumerate}
 
 \paragraph{Configuration des endpoints}
 \begin{itemize}
-    \item \texttt{/webhook/eternalblue-alert} : Reception des webhooks Suricata (script extraction) vers n8n.
-    \item \texttt{/webhook/xss}, : Flux Wazuh ou ModSecurity paralleles.
+  \item \texttt{/webhook/eternalblue-alert} : Reception des webhooks Suricata (script extraction) vers n8n.
+  \item \texttt{/webhook/xss}, : Flux Wazuh ou ModSecurity paralleles.
 \end{itemize}
 
 Cette approche combine detection reseau temps reel (Suricata) et logique SOAR (scripts + n8n + TheHive/Cortex) sans scripts Python lourds, tout en offrant une correlation multi-phase fiable et une reutilisation intelligente des PCAP pour minimiser la charge disque.
@@ -289,19 +289,19 @@ Le projet dispose de plusieurs workflows n8n pre-configures pour differents type
 \paragraph{Workflow XSS}
 \texttt{ATTACK\_SCENARIOS/xss/n8n\_workflow.json}
 \begin{itemize}
-    \item Detection automatique des attaques XSS via ModSecurity
-    \item Blocage automatique des IP malveillantes via OPNsense
-    \item Integration avec l'API OPNsense pour mise a jour des alias de blocage
-    \item Notification automatique des equipes de securite
+  \item Detection automatique des attaques XSS via ModSecurity
+  \item Blocage automatique des IP malveillantes via OPNsense
+  \item Integration avec l'API OPNsense pour mise a jour des alias de blocage
+  \item Notification automatique des equipes de securite
 \end{itemize}
 
 \paragraph{Workflow Malicious Websites}
 \texttt{ATTACK\_SCENARIOS/malicious\_websites/n8n\_workflow.json}
 \begin{itemize}
-    \item Surveillance des connexions vers des sites malveillants
-    \item Correlation avec les bases de threat intelligence
-    \item Actions de quarantaine pour les postes compromis
-    \item Generation de rapports d'incident automatises
+  \item Surveillance des connexions vers des sites malveillants
+  \item Correlation avec les bases de threat intelligence
+  \item Actions de quarantaine pour les postes compromis
+  \item Generation de rapports d'incident automatises
 \end{itemize}
 
 Ces workflows demontrent l'efficacite de l'approche SOAR pour l'automatisation des reponses aux incidents dans un environnement hospitalier, permettant une reaction rapide tout en respectant les contraintes operationnelles du secteur medical.
@@ -313,21 +313,21 @@ Ces workflows demontrent l'efficacite de l'approche SOAR pour l'automatisation d
 Les tests de performance effectues sur l'infrastructure deployee montrent des resultats satisfaisants pour un environnement hospitalier :
 
 \begin{table}[H]
-    \centering
-    \caption{Metriques de performance des composants SIEM/SOAR}
-    \begin{tabular}{|l|c|c|c|}
-        \hline
-        \textbf{Composant} & \textbf{Latence moyenne} & \textbf{Debit} & \textbf{Disponibilite} \\
-        \hline
-        Wazuh Manager      & 50ms                     & 10k events/sec & 99.9\%                 \\
-        \hline
-        TheHive            & 200ms                    & 100 cases/min  & 99.8\%                 \\
-        \hline
-        Cortex Analyzers   & 2-30s                    & Variable       & 99.5\%                 \\
-        \hline
-        n8n Workflows      & 100ms                    & 500 req/min    & 99.9\%                 \\
-        \hline
-    \end{tabular}
+  \centering
+  \caption{Metriques de performance des composants SIEM/SOAR}
+  \begin{tabular}{|l|c|c|c|}
+    \hline
+    \textbf{Composant} & \textbf{Latence moyenne} & \textbf{Debit} & \textbf{Disponibilite} \\
+    \hline
+    Wazuh Manager      & 50ms                     & 10k events/sec & 99.9\%                 \\
+    \hline
+    TheHive            & 200ms                    & 100 cases/min  & 99.8\%                 \\
+    \hline
+    Cortex Analyzers   & 2-30s                    & Variable       & 99.5\%                 \\
+    \hline
+    n8n Workflows      & 100ms                    & 500 req/min    & 99.9\%                 \\
+    \hline
+  \end{tabular}
 \end{table}
 
 \subsection{Scenarios de Test}
@@ -335,9 +335,9 @@ Les tests de performance effectues sur l'infrastructure deployee montrent des re
 L'efficacite de la solution a ete validee a travers plusieurs scenarios d'attaque controles :
 
 \begin{enumerate}
-    \item \textbf{Test EternalBlue} : Detection et reponse automatisee en moins de 30 secondes
-    \item \textbf{Test XSS} : Blocage automatique et notification en temps reel
-    \item \textbf{Test Insider Threat} : Detection d'activites suspectes sur systemes medicaux
+  \item \textbf{Test EternalBlue} : Detection et reponse automatisee en moins de 30 secondes
+  \item \textbf{Test XSS} : Blocage automatique et notification en temps reel
+  \item \textbf{Test Insider Threat} : Detection d'activites suspectes sur systemes medicaux
 \end{enumerate}
 
 \subsection{Validation Fonctionnelle}
@@ -349,8 +349,8 @@ Les tests fonctionnels confirment l'efficacite de l'integration SIEM/SOAR :
 Notre implementation utilise les analyseurs Cortex suivants, adaptes a l'environnement hospitalier :
 
 \begin{itemize}
-    \item \textbf{VirusTotal} : Analyse de reputation pour fichiers et URLs
-    \item \textbf{MISP} : Analyse de reputation pour fichiers et URLs
+  \item \textbf{VirusTotal} : Analyse de reputation pour fichiers et URLs
+  \item \textbf{MISP} : Analyse de reputation pour fichiers et URLs
 \end{itemize}
 
 Cette implementation detaillee demontre la configuration complete de notre stack SIEM/SOAR adaptee a l'environnement hospitalier, avec des regles specialisees, des workflows automatises et des integrations robustes pour assurer la protection des systemes medicaux critiques.
@@ -362,10 +362,10 @@ Cette implementation detaillee demontre la configuration complete de notre stack
 Cortex joue un role crucial dans l'enrichissement automatise des alertes grace a l'intelligence sur les menaces. La figure \ref{fig:misp_cortex_config} illustre la configuration de l'integration entre MISP et Cortex pour l'analyse automatisee des IOCs.
 
 \begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{images/misp_config_in_cortex.png}
-    \caption{Configuration de l'integration MISP dans Cortex pour l'analyse automatisee}
-    \label{fig:misp_cortex_config}
+  \centering
+  \includegraphics[width=0.9\textwidth]{images/misp_config_in_cortex.png}
+  \caption{Configuration de l'integration MISP dans Cortex pour l'analyse automatisee}
+  \label{fig:misp_cortex_config}
 \end{figure}
 
 Cette configuration permet l'analyse automatique des indicateurs de compromission (IOCs) extraits des alertes, enrichissant ainsi le contexte des incidents de securite avec des donnees de threat intelligence actualisees.

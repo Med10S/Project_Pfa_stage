@@ -55,17 +55,17 @@ Notre approche s'aligne sur le framework NIST CSF :
     \caption{Mapping NIST Cybersecurity Framework}
     \begin{tabular}{|l|l|l|}
         \hline
-        \textbf{Fonction} & \textbf{Composant SIEM/SOAR} & \textbf{Implementation} \\
+        \textbf{Fonction} & \textbf{Composant SIEM/SOAR} & \textbf{Implementation}             \\
         \hline
-        Identify          & Asset Discovery              & Wazuh Agent Inventory   \\
+        Identify          & Asset Discovery              & Wazuh Agent Inventory               \\
         \hline
-        Protect           & Access Control               & RBAC + MFA              \\
+        Protect           & Access Control               & RBAC + MFA                          \\
         \hline
-        Detect            & Event Correlation            & Wazuh Rules Engine      \\
+        Detect            & Event Correlation            & Wazuh Rules Engine + Suricata Rules \\
         \hline
-        Respond           & Incident Response            & TheHive Workflows       \\
+        Respond           & Incident Response            & TheHive Workflows                   \\
         \hline
-        Recover           & Business Continuity          & Automated Backup        \\
+        Recover           & Business Continuity          & Automated Backup                    \\
         \hline
     \end{tabular}
 \end{table}
@@ -113,10 +113,9 @@ Pour une comprehension initiale, la figure \ref{fig:flow_simple} presente une vu
 
     \item \textbf{Logs de Securite}
           \begin{itemize}
-              \item Firewalls (pfSense, FortiGate)
-              \item IDS/IPS (Suricata, Snort)
+              \item Firewalls (pfSense)
+              \item IDS/IPS (Suricata)
               \item WAF (ModSecurity)
-              \item Systemes d'authentification (LDAP, SSO)
           \end{itemize}
 
     \item \textbf{Donnees de Contexte}
@@ -191,13 +190,6 @@ Les regles de correlation sont developpees pour detecter les attaques specifique
 
 \paragraph{Workflows Automatises}
 \begin{enumerate}
-    \item \textbf{Triage Automatique}
-          \begin{itemize}
-              \item Classification par type d'attaque (MITRE ATT\&CK)
-              \item Scoring de criticite base sur asset et TTP
-              \item Assignment automatique selon expertise equipe
-          \end{itemize}
-
     \item \textbf{Enrichissement Contextuel}
           \begin{itemize}
               \item Recherche historique d'incidents similaires
@@ -234,7 +226,7 @@ Les regles de correlation sont developpees pour detecter les attaques specifique
 
 \paragraph{Responders Personnalises}
 \begin{itemize}
-    \item \textbf{OPNsense IP Block} : Blocage automatique au niveau firewall
+    \item \textbf{pfSense IP Block} : Blocage automatique au niveau firewall
     \item \textbf{MISP Event Creation} : Publication IOC vers communaute
 \end{itemize}
 
@@ -374,11 +366,19 @@ Les regles de correlation sont developpees pour detecter les attaques specifique
 
 \paragraph{Segmentation Reseau}
 \begin{itemize}
-    \item \textbf{DMZ SIEM} : 192.168.100.0/24 - Composants exposes (Dashboard)
-    \item \textbf{LAN SOAR} : 192.168.101.0/24 - Backend processing (Indexer, Cortex)
-    \item \textbf{MGMT} : 192.168.102.0/24 - Administration et monitoring
-    \item \textbf{HOSPITAL} : 192.168.15.0/24 - Reseau hospitalier source
+    \item \textbf{WAN} : 192.168.182.0/24 - Interface externe (eth0) vers Internet
+    \item \textbf{LAN1} : 192.168.181.0/24 - Segment interne securise (eth2) avec Suricata/WAF
+    \item \textbf{LAN2} : 192.168.183.0/24 - Segment test/attaquant (eth1) pour scenarios de penetration
+    \item \textbf{HOSPITAL} : 192.168.15.0/24 - Reseau hospitalier principal (SOAR Server, Endpoints)
 \end{itemize}
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/image.png}
+    \caption{Topologie reseau hospitaliere - Segmentation et flux autorises}
+    \label{fig:topologie_reseau}
+\end{figure}
 
 \paragraph{Flux Reseau Autorises}
 \begin{enumerate}
